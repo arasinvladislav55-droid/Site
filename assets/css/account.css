@@ -221,3 +221,27 @@
   .acc__steps { grid-template-columns: 1fr; }
   .acc__actions .btn { flex: 1 1 100%; }
 }
+
+
+/* ---------- профиль ---------- */
+
+.acc__avatar {
+  display: grid;
+  place-items: center;
+  width: 72px;
+  height: 72px;
+  margin-bottom: 18px;
+  border-radius: 50%;
+  font-size: 1.9rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--a), var(--b));
+  box-shadow: 0 16px 40px -16px color-mix(in srgb, var(--a) 90%, transparent);
+}
+
+.acc__since {
+  margin-top: 10px;
+  font-size: 0.84rem;
+  color: var(--muted);
+}

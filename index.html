@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Universal Client</title>
+<title>Universal Client — лаунчер Minecraft с шестью темами</title>
 <meta name="description" content="Universal Client — лаунчер Minecraft: шесть цветовых тем, фирменное оформление игры, версии 1.19–1.21.11, серверы в один клик и Discord Rich Presence. Бесплатный тариф и подписки на 1, 6 и 12 месяцев.">
 <meta name="theme-color" content="#070a12">
 <meta property="og:type" content="website">
@@ -39,6 +39,10 @@
       <a href="#themes" data-i18n="nav.themes">Темы</a>
       <a href="#pricing" data-i18n="nav.pricing">Тарифы</a>
       <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      <a class="nav__account" href="account.html" data-account>
+        <span class="acc-avatar" data-account-avatar aria-hidden="true"></span>
+        <span class="acc-label" data-account-label data-i18n="btn.account">Войти</span>
+      </a>
     </nav>
 
     <div class="header__actions">
@@ -51,8 +55,9 @@
         <button class="swatch" data-set-theme="sunset"  data-t="sunset"  aria-label="Закат" title="Закат"><span></span></button>
       </div>
       <button class="lang" id="langBtn" type="button" aria-label="Switch language">EN</button>
-      <a class="btn btn--ghost btn--sm header__account" href="account.html">
-        <span data-i18n="btn.account">Войти</span>
+      <a class="btn btn--ghost btn--sm header__account" href="account.html" data-account>
+        <span class="acc-avatar" data-account-avatar aria-hidden="true"></span>
+        <span class="acc-label" data-account-label data-i18n="btn.account">Войти</span>
       </a>
       <a class="btn btn--primary btn--sm" href="#pricing">
         <span data-i18n="btn.buy">Купить</span>

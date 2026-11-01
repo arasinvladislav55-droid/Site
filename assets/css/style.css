@@ -254,6 +254,40 @@ svg { display: block; }
 }
 
 .btn--sm { padding: 9px 16px; font-size: 0.86rem; }
+
+/* ---------- кнопка аккаунта в шапке ---------- */
+
+.acc-avatar {
+  display: none;
+  flex: none;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  font-size: 0.74rem;
+  font-weight: 800;
+  line-height: 1;
+  text-transform: uppercase;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--a), var(--b));
+}
+
+.acc-label {
+  min-width: 0;
+  max-width: 14ch;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.header__account.is-user {
+  gap: 8px;
+  padding-left: 6px;
+  border-color: color-mix(in srgb, var(--a) 45%, var(--line-strong));
+}
+
+.is-user > .acc-avatar { display: grid; }
+
+.nav a.nav__account { display: none; }
 .btn--lg { padding: 15px 26px; font-size: 1rem; }
 
 .btn:active { transform: translateY(0); }
@@ -1379,6 +1413,16 @@ svg { display: block; }
   .header__actions { margin-left: auto; }
   .header__actions .btn--primary { display: none; }
   .header__account { display: none; }
+
+  .nav a.nav__account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 800;
+    border-bottom: 0;
+  }
+  .nav a.nav__account.is-user .acc-label { max-width: none; }
 
   .steps { grid-template-columns: 1fr; }
   .start { padding: 44px 24px; }

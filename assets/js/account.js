@@ -40,6 +40,7 @@
       "acc.step3": "Тариф, срок и функции подтягиваются с сервера.",
       "acc.forever": "бесплатно навсегда",
       "acc.until": "до {date}",
+      "acc.since": "Аккаунт создан {date}",
       "acc.plan.free": "Free",
       "acc.plan.1m": "1 месяц",
       "acc.plan.6m": "6 месяцев",
@@ -86,6 +87,7 @@
       "acc.step3": "Plan, term and features are pulled from the server.",
       "acc.forever": "free forever",
       "acc.until": "until {date}",
+      "acc.since": "Account created {date}",
       "acc.plan.free": "Free",
       "acc.plan.1m": "1 month",
       "acc.plan.6m": "6 months",
@@ -147,6 +149,8 @@
     submit: $("#submit"),
     submitText: $("#submitText"),
     profileNick: $("#profileNick"),
+    profileAvatar: $("#profileAvatar"),
+    profileSince: $("#profileSince"),
     planBadge: $("#planBadge"),
     planUntil: $("#planUntil"),
     logout: $("#logoutBtn"),
@@ -272,6 +276,18 @@
     const planKey = user.plan && I18N[lang]["acc.plan." + user.plan] ? user.plan : "free";
 
     els.profileNick.textContent = user.nickname;
+    els.profileAvatar.textContent = user.nickname.charAt(0);
+
+    if (user.createdAt) {
+      const created = new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : "en-GB", {
+        day: "numeric",
+        month: "long",
+        year: "numeric",
+      }).format(new Date(user.createdAt));
+      els.profileSince.textContent = t("acc.since", { date: created });
+    } else {
+      els.profileSince.textContent = "";
+    }
     els.planBadge.textContent = t("acc.plan." + planKey);
     els.planBadge.classList.toggle("is-free", planKey === "free");
 

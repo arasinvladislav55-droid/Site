@@ -16,6 +16,8 @@
       "btn.downloadClient": "Скачать лаунчер",
       "btn.downloadExe": "Скачать UniversalClient-7.0.0.exe",
       "btn.buy": "Купить",
+      "btn.account": "Войти",
+      "btn.profile": "Профиль",
       "btn.choosePlan": "Выбрать тариф",
       "btn.free": "Скачать бесплатно",
       "btn.comparePlans": "Сравнить тарифы",
@@ -145,6 +147,8 @@
       "btn.downloadClient": "Download launcher",
       "btn.downloadExe": "Download UniversalClient-7.0.0.exe",
       "btn.buy": "Buy",
+      "btn.account": "Sign in",
+      "btn.profile": "Profile",
       "btn.choosePlan": "Choose a plan",
       "btn.free": "Download free",
       "btn.comparePlans": "Compare plans",
@@ -272,6 +276,9 @@
     },
     set(key, value) {
       try { localStorage.setItem(key, value); } catch (e) { /* ignore */ }
+    },
+    remove(key) {
+      try { localStorage.removeItem(key); } catch (e) { /* ignore */ }
     }
   };
 
@@ -370,6 +377,7 @@
     if (label) label.textContent = dict["t." + currentTheme];
 
     if (typeof syncSliderLabels === "function") syncSliderLabels();
+    renderAccount();
   }
 
   const langBtn = $("#langBtn");
@@ -637,10 +645,78 @@
   $$("[data-buy]").forEach((link) => placeholderLink(link, "buy.toast"));
   $$("[data-download]").forEach((link) => placeholderLink(link, "download.toast"));
 
+  /* ============ account button ============ */
+
+  /* Если вошли — вместо «Войти» показываем ник; клик ведёт в профиль (account.html). */
+
+  const API_BASE =
+    window.UC_API ??
+    (location.protocol === "file:" || location.hostname === "127.0.0.1" || location.hostname === "localhost"
+      ? "http://127.0.0.1:8787"
+      : "");
+  const NICK_OK = /^[A-Za-z0-9_]{3,16}$/;
+  const accountLinks = $$("[data-account]");
+
+  function renderAccount() {
+    const dict = I18N[lang];
+    const nick = store.get("uc-nick", "");
+    const signed = Boolean(store.get("uc-token", "") && NICK_OK.test(nick));
+
+    accountLinks.forEach((link) => {
+      const label = $("[data-account-label]", link);
+      const avatar = $("[data-account-avatar]", link);
+      link.classList.toggle("is-user", signed);
+
+      if (signed) {
+        label.removeAttribute("data-i18n");
+        label.textContent = nick;
+        if (avatar) avatar.textContent = nick.charAt(0);
+        link.title = dict["btn.profile"] + ": " + nick;
+        link.setAttribute("aria-label", dict["btn.profile"] + ": " + nick);
+      } else {
+        label.dataset.i18n = "btn.account";
+        label.textContent = dict["btn.account"];
+        link.removeAttribute("title");
+        link.removeAttribute("aria-label");
+      }
+    });
+  }
+
+  /* Раз за вкладку сверяемся с сервером: если сессия истекла, возвращаем «Войти». */
+  function verifyAccount() {
+    const token = store.get("uc-token", "");
+    if (!token) return;
+    const mark = "uc-verified-" + token.slice(0, 12);
+    try { if (sessionStorage.getItem(mark)) return; } catch (e) { /* ignore */ }
+
+    fetch(API_BASE + "/api/me", { headers: { Authorization: "Bearer " + token } })
+      .then((res) => {
+        if (res.status === 401) {
+          store.remove("uc-token");
+          store.remove("uc-nick");
+          renderAccount();
+          return null;
+        }
+        return res.ok ? res.json() : null;
+      })
+      .then((data) => {
+        if (!data || !data.user) return;
+        store.set("uc-nick", data.user.nickname);
+        try { sessionStorage.setItem(mark, "1"); } catch (e) { /* ignore */ }
+        renderAccount();
+      })
+      .catch(() => { /* нет сети или API — оставляем как есть */ });
+  }
+
+  window.addEventListener("storage", (e) => {
+    if (e.key === "uc-token" || e.key === "uc-nick") renderAccount();
+  });
+
   /* ============ boot ============ */
 
   applyLang(lang);
   applyTheme(currentTheme, false);
+  verifyAccount();
 
   window.addEventListener("load", () => {
     THEMES.forEach((theme) => {
