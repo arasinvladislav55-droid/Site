@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="emerald">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Аккаунт — Universal Client</title>
+<meta name="description" content="Регистрация и вход в аккаунт Universal Client. Один ник и пароль для сайта и лаунчера.">
+<meta name="theme-color" content="#070a12">
+<link rel="icon" href="assets/img/icon.png">
+<link rel="apple-touch-icon" href="assets/img/icon.png">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/account.css">
+<script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow--a"></div>
+  <div class="bg-glow bg-glow--b"></div>
+</div>
+
+<header class="header" id="header">
+  <div class="wrap header__inner">
+    <a class="brand" href="index.html" aria-label="Universal Client">
+      <img class="brand__icon" src="assets/img/icon.png" alt="" width="36" height="36">
+      <span class="brand__text">Universal<span>Client</span></span>
+      <span class="brand__ver">v7.0.0</span>
+    </a>
+
+    <div class="header__actions">
+      <button class="lang" id="accLang" type="button" aria-label="Switch language">EN</button>
+      <a class="btn btn--ghost btn--sm" href="index.html">
+        <span data-i18n="acc.back">На главную</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="acc">
+  <div class="wrap acc__wrap">
+
+    <section class="acc__card" id="authCard">
+      <span class="eyebrow" data-i18n="acc.eyebrow">Аккаунт</span>
+      <h1 class="acc__title" data-i18n="acc.title">Один аккаунт для сайта и лаунчера</h1>
+      <p class="acc__lead" data-i18n="acc.lead">Зарегистрируйтесь здесь — и входите этим ником и паролем в лаунчере. Тариф и срок подписки подтянутся сами.</p>
+
+      <div class="acc__tabs" role="tablist" aria-label="Вход и регистрация">
+        <button class="acc__tab is-active" type="button" role="tab" aria-selected="true" data-tab="login" data-i18n="acc.tabLogin">Вход</button>
+        <button class="acc__tab" type="button" role="tab" aria-selected="false" data-tab="register" data-i18n="acc.tabRegister">Регистрация</button>
+      </div>
+
+      <form class="acc__form" id="authForm" novalidate>
+        <label class="acc__field">
+          <span data-i18n="acc.nickname">Ник в Minecraft</span>
+          <input id="nickname" name="nickname" type="text" maxlength="16" autocomplete="username"
+                 spellcheck="false" placeholder="Steve_2026" required>
+        </label>
+
+        <label class="acc__field">
+          <span data-i18n="acc.password">Пароль</span>
+          <input id="password" name="password" type="password" maxlength="128"
+                 autocomplete="current-password" placeholder="••••••••" required>
+        </label>
+
+        <label class="acc__field" id="repeatRow" hidden>
+          <span data-i18n="acc.repeat">Повторите пароль</span>
+          <input id="repeat" name="repeat" type="password" maxlength="128"
+                 autocomplete="new-password" placeholder="••••••••">
+        </label>
+
+        <p class="acc__msg" id="msg" role="status" aria-live="polite"></p>
+
+        <button class="btn btn--primary btn--block btn--lg" id="submit" type="submit">
+          <span id="submitText" data-i18n="acc.signIn">Войти</span>
+        </button>
+      </form>
+
+      <p class="acc__note" data-i18n="acc.note">Ник изменить нельзя: от него зависит UUID игрока, сохранённые миры и доступ на серверах.</p>
+    </section>
+
+    <section class="acc__card acc__card--profile" id="profileCard" hidden>
+      <span class="eyebrow" data-i18n="acc.profileEyebrow">Профиль</span>
+      <h1 class="acc__title" id="profileNick">—</h1>
+
+      <p class="acc__plan">
+        <span class="acc__badge" id="planBadge">Free</span>
+        <span class="acc__until" id="planUntil"></span>
+      </p>
+
+      <p class="acc__lead" data-i18n="acc.profileLead">Теперь откройте лаунчер и войдите этим ником и паролем — доступ и тариф подтянутся автоматически.</p>
+
+      <div class="acc__actions">
+        <a class="btn btn--primary" href="index.html#pricing" data-i18n="acc.choosePlan">Выбрать тариф</a>
+        <button class="btn btn--ghost" id="logoutBtn" type="button" data-i18n="acc.logout">Выйти</button>
+      </div>
+    </section>
+
+    <ol class="acc__steps">
+      <li>
+        <span class="acc__step-num">01</span>
+        <strong data-i18n="acc.step1t">Регистрация на сайте</strong>
+        <span data-i18n="acc.step1">Придумайте ник и пароль — аккаунт создаётся сразу.</span>
+      </li>
+      <li>
+        <span class="acc__step-num">02</span>
+        <strong data-i18n="acc.step2t">Вход в лаунчере</strong>
+        <span data-i18n="acc.step2">Тот же ник и пароль на экране входа в клиенте.</span>
+      </li>
+      <li>
+        <span class="acc__step-num">03</span>
+        <strong data-i18n="acc.step3t">Игра и подписка</strong>
+        <span data-i18n="acc.step3">Тариф, срок и функции подтягиваются с сервера.</span>
+      </li>
+    </ol>
+
+  </div>
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__brand">
+      <img src="assets/img/icon.png" alt="" width="40" height="40">
+      <div>
+        <strong>Universal Client</strong>
+        <span data-i18n="footer.tagline">Лаунчер Minecraft с характером</span>
+      </div>
+    </div>
+
+    <nav class="footer__nav" aria-label="Ссылки">
+      <a href="index.html#pricing" data-i18n="nav.pricing">Тарифы</a>
+      <a href="index.html#install" data-i18n="nav.install">Установка</a>
+      <a href="index.html#faq" data-i18n="nav.faq">FAQ</a>
+    </nav>
+
+    <p class="footer__legal" data-i18n="footer.legal">Не связан с Mojang Studios и Microsoft. Minecraft — торговая марка Mojang Studios.</p>
+    <p class="footer__copy">© 2026 Universal Client · v7.0.0</p>
+  </div>
+</footer>
+
+<script src="assets/js/account.js"></script>
+</body>
+</html>

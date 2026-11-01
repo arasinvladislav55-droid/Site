@@ -1,0 +1,223 @@
+/* =========================================================
+   Universal Client — страница аккаунта
+   ========================================================= */
+
+.acc {
+  padding: calc(var(--header-h) + 56px) 0 90px;
+}
+
+.acc__wrap {
+  display: grid;
+  gap: 26px;
+  justify-items: center;
+}
+
+.acc__card {
+  position: relative;
+  width: 100%;
+  max-width: 480px;
+  padding: 34px 32px 30px;
+  border-radius: 26px;
+  border: 1px solid var(--line);
+  background:
+    radial-gradient(ellipse 90% 60% at 50% 0%, color-mix(in srgb, var(--a) 12%, transparent), transparent 70%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.012));
+  box-shadow: 0 40px 90px -60px #000;
+}
+
+.acc__card[hidden] { display: none; }
+
+.acc__title {
+  margin-top: 10px;
+  font-size: clamp(1.45rem, 2.4vw, 1.8rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.035em;
+}
+
+.acc__lead {
+  margin-top: 12px;
+  color: var(--muted);
+  font-size: 0.94rem;
+}
+
+.acc__tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  margin: 24px 0 20px;
+  padding: 5px;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.acc__tab {
+  padding: 9px 12px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--muted);
+  transition: color 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.acc__tab:hover { color: var(--text); }
+
+.acc__tab.is-active {
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--a), var(--b));
+  box-shadow: 0 10px 24px -16px color-mix(in srgb, var(--a) 90%, transparent);
+}
+
+.acc__form {
+  display: grid;
+  gap: 14px;
+}
+
+.acc__field {
+  display: grid;
+  gap: 7px;
+}
+
+.acc__field[hidden] { display: none; }
+
+.acc__field > span {
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.acc__field input {
+  width: 100%;
+  padding: 13px 15px;
+  border-radius: 14px;
+  border: 1px solid var(--line-strong);
+  background: rgba(6, 9, 16, 0.72);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.98rem;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease);
+}
+
+.acc__field input::placeholder { color: color-mix(in srgb, var(--muted) 65%, transparent); }
+
+.acc__field input:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--a) 75%, transparent);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--a) 22%, transparent);
+}
+
+.acc__field input.is-error {
+  border-color: #f87171;
+  box-shadow: 0 0 0 3px rgba(248, 113, 113, 0.18);
+}
+
+.acc__msg {
+  min-height: 1.5em;
+  margin: -2px 0 0;
+  font-size: 0.86rem;
+  font-weight: 700;
+  line-height: 1.45;
+  color: var(--muted);
+}
+
+.acc__msg.is-error { color: #fca5a5; }
+.acc__msg.is-ok { color: #6ee7b7; }
+
+.acc__form .btn { margin-top: 4px; }
+
+.acc__note {
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  font-size: 0.78rem;
+  line-height: 1.55;
+  color: color-mix(in srgb, var(--muted) 85%, transparent);
+}
+
+/* ---------- профиль ---------- */
+
+.acc__card--profile { text-align: left; }
+
+.acc__plan {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+.acc__badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+  color: var(--ink);
+  background: linear-gradient(135deg, var(--a), var(--b));
+}
+
+.acc__badge.is-free {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed var(--line-strong);
+}
+
+.acc__until {
+  font-size: 0.84rem;
+  color: var(--muted);
+}
+
+.acc__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 22px;
+}
+
+.acc__actions .btn { flex: 1 1 auto; justify-content: center; }
+
+/* ---------- шаги ---------- */
+
+.acc__steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+  width: 100%;
+  max-width: 880px;
+}
+
+.acc__steps li {
+  display: grid;
+  gap: 6px;
+  padding: 18px 18px 20px;
+  border-radius: 18px;
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.025);
+}
+
+.acc__step-num {
+  font-size: 1.35rem;
+  font-weight: 800;
+  letter-spacing: -0.04em;
+  color: color-mix(in srgb, var(--a) 85%, transparent);
+}
+
+.acc__steps strong { font-size: 0.92rem; }
+
+.acc__steps span:last-child {
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--muted);
+}
+
+@media (max-width: 760px) {
+  .acc { padding: calc(var(--header-h) + 34px) 0 64px; }
+  .acc__card { padding: 26px 20px 24px; border-radius: 22px; }
+  .acc__steps { grid-template-columns: 1fr; }
+  .acc__actions .btn { flex: 1 1 100%; }
+}
