@@ -8,7 +8,11 @@
      В продакшене: "https://api.вашдомен.ru" или "/api",
      если сервер стоит за тем же доменом через reverse proxy.
      ========================================================= */
-  const API_BASE = window.UC_API || "http://127.0.0.1:8787";
+  const API_BASE =
+    window.UC_API ??
+    (location.protocol === "file:" || location.hostname === "127.0.0.1" || location.hostname === "localhost"
+      ? "http://127.0.0.1:8787"
+      : "");
 
   const I18N = {
     ru: {
