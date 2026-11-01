@@ -81,26 +81,80 @@
       <p class="acc__note" data-i18n="acc.note">Ник изменить нельзя: от него зависит UUID игрока, сохранённые миры и доступ на серверах.</p>
     </section>
 
-    <section class="acc__card acc__card--profile" id="profileCard" hidden>
-      <div class="acc__avatar" id="profileAvatar" aria-hidden="true">?</div>
-      <span class="eyebrow" data-i18n="acc.profileEyebrow">Профиль</span>
-      <h1 class="acc__title" id="profileNick">—</h1>
+    <section class="prof" id="profileCard" hidden>
 
-      <p class="acc__plan">
-        <span class="acc__badge" id="planBadge">Free</span>
-        <span class="acc__until" id="planUntil"></span>
-      </p>
-      <p class="acc__since" id="profileSince"></p>
-
-      <p class="acc__lead" data-i18n="acc.profileLead">Теперь откройте лаунчер и войдите этим ником и паролем — доступ и тариф подтянутся автоматически.</p>
-
-      <div class="acc__actions">
-        <a class="btn btn--primary" href="index.html#pricing" data-i18n="acc.choosePlan">Выбрать тариф</a>
+      <header class="pcard prof__hero">
+        <div class="acc__avatar" id="profileAvatar" aria-hidden="true">?</div>
+        <div class="prof__id">
+          <span class="eyebrow" data-i18n="acc.profileEyebrow">Профиль</span>
+          <h1 class="prof__nick" id="profileNick">—</h1>
+          <p class="prof__meta">
+            <span class="acc__badge" id="planBadge">Free</span>
+            <span id="profileSince"></span>
+          </p>
+        </div>
         <button class="btn btn--ghost" id="logoutBtn" type="button" data-i18n="acc.logout">Выйти</button>
+      </header>
+
+      <div class="prof__grid">
+
+        <div class="prof__col">
+
+        <article class="pcard pcard--1">
+          <h2 class="pcard__title" data-i18n="prof.subTitle">Подписка</h2>
+          <p class="prof__plan" id="subPlan">Free</p>
+          <p class="prof__sub" id="subUntil"></p>
+          <div class="meter" id="subMeter" hidden><div class="meter__fill" id="subFill"></div></div>
+          <p class="prof__hint" id="subHint"></p>
+          <a class="btn btn--primary" id="subCta" href="index.html#pricing" data-i18n="prof.ctaFree">Открыть Premium</a>
+        </article>
+
+        <article class="pcard pcard--4">
+          <h2 class="pcard__title" data-i18n="prof.secTitle">Безопасность</h2>
+          <form class="acc__form" id="pwForm" novalidate>
+            <label class="acc__field">
+              <span data-i18n="prof.pwCurrent">Текущий пароль</span>
+              <input id="pwCurrent" type="password" maxlength="128" autocomplete="current-password" placeholder="••••••••">
+            </label>
+            <label class="acc__field">
+              <span data-i18n="prof.pwNew">Новый пароль</span>
+              <input id="pwNew" type="password" maxlength="128" autocomplete="new-password" placeholder="••••••••">
+            </label>
+            <label class="acc__field">
+              <span data-i18n="acc.repeat">Повторите пароль</span>
+              <input id="pwRepeat" type="password" maxlength="128" autocomplete="new-password" placeholder="••••••••">
+            </label>
+            <p class="acc__msg" id="pwMsg" role="status" aria-live="polite"></p>
+            <button class="btn btn--ghost btn--block" id="pwSubmit" type="submit" data-i18n="prof.pwSave">Сменить пароль</button>
+          </form>
+          <button class="prof__danger" id="logoutAllBtn" type="button" data-i18n="prof.logoutAll">Выйти на всех устройствах</button>
+        </article>
+
+        </div>
+
+        <div class="prof__col">
+
+        <article class="pcard pcard--2">
+          <h2 class="pcard__title" data-i18n="prof.featTitle">Возможности</h2>
+          <ul class="feat" id="featList"></ul>
+        </article>
+
+        <article class="pcard pcard--3">
+          <h2 class="pcard__title" data-i18n="prof.infoTitle">Данные аккаунта</h2>
+          <dl class="info" id="infoList"></dl>
+        </article>
+
+        </div>
+
+        <article class="pcard prof__wide">
+          <h2 class="pcard__title" data-i18n="prof.startTitle">Как начать играть</h2>
+          <ol class="todo" id="todoList"></ol>
+        </article>
+
       </div>
     </section>
 
-    <ol class="acc__steps">
+    <ol class="acc__steps" id="regSteps">
       <li>
         <span class="acc__step-num">01</span>
         <strong data-i18n="acc.step1t">Регистрация на сайте</strong>

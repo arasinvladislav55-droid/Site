@@ -90,6 +90,8 @@ function userJson(row) {
     planUntil: plan === "free" ? null : row.plan_until,
     features: plan === "free" ? FREE_FEATURES : [...FREE_FEATURES, ...PAID_FEATURES],
     createdAt: row.created_at,
+    lastLogin: row.last_login || null,
+    deviceLinked: Boolean(row.device_id),
   };
 }
 
@@ -278,6 +280,41 @@ async function logout({ request, env, r }) {
   return r.json(200, { ok: true });
 }
 
+async function changePassword({ request, env, ip, r }) {
+  const db = env.DB;
+  const user = await currentUser(db, request);
+  if (!user) return r.fail(401, "unauthorized", "Сессия истекла, войдите снова.");
+  if (await tooMany(db, ip)) return r.fail(429, "rate_limited", "Слишком много попыток. Подождите пару минут.");
+
+  const body = await readBody(request);
+  const current = String(body.current || "");
+  const next = String(body.next || "");
+
+  if (next.length < 6 || next.length > 128)
+    return r.fail(400, "bad_password", "Пароль: от 6 до 128 символов.");
+  if (!(await verifyPassword(current, user.pass_hash)))
+    return r.fail(403, "wrong_password", "Текущий пароль неверный.");
+
+  await db
+    .prepare("UPDATE users SET pass_hash = ? WHERE id = ?")
+    .bind(await hashPassword(next, iterOf(env)), user.id)
+    .run();
+  // Остальные устройства и сессии выходят, текущая остаётся.
+  await db
+    .prepare("DELETE FROM sessions WHERE user_id = ? AND token_hash <> ?")
+    .bind(user.id, await sha256(bearer(request)))
+    .run();
+  await resetAttempts(db, ip);
+  return r.json(200, { ok: true });
+}
+
+async function logoutAll({ request, env, r }) {
+  const user = await currentUser(env.DB, request);
+  if (!user) return r.fail(401, "unauthorized", "Сессия истекла, войдите снова.");
+  await env.DB.prepare("DELETE FROM sessions WHERE user_id = ?").bind(user.id).run();
+  return r.json(200, { ok: true });
+}
+
 async function devPlan({ request, env, r }) {
   if (env.DEV !== "1") return r.fail(404, "not_found", "Нет такого метода.");
   const body = await readBody(request);
@@ -317,7 +354,9 @@ export async function onRequest({ request, env }) {
     if (pathname === "/api/auth/register" && m === "POST") return await register(ctx);
     if (pathname === "/api/auth/login" && m === "POST") return await login(ctx);
     if (pathname === "/api/auth/logout" && m === "POST") return await logout(ctx);
+    if (pathname === "/api/auth/logout-all" && m === "POST") return await logoutAll(ctx);
     if (pathname === "/api/me" && m === "GET") return await me(ctx);
+    if (pathname === "/api/me/password" && m === "POST") return await changePassword(ctx);
     if (pathname === "/api/dev/plan" && m === "POST") return await devPlan(ctx);
     if (pathname === "/api/payments/webhook" && m === "POST") return await webhook(ctx);
     return r.fail(404, "not_found", "Нет такого метода.");

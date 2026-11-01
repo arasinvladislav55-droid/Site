@@ -40,6 +40,50 @@
       "acc.step3": "Тариф, срок и функции подтягиваются с сервера.",
       "acc.forever": "бесплатно навсегда",
       "acc.until": "до {date}",
+      "prof.subTitle": "Подписка",
+      "prof.ctaFree": "Открыть Premium",
+      "prof.ctaPaid": "Продлить подписку",
+      "prof.hintFree": "Premium открывает все темы, оформление Rounded UI и Discord RPC.",
+      "prof.hintWarn": "Подписка скоро закончится — продлите, чтобы не потерять функции.",
+      "prof.activeUntil": "Активна до {date}",
+      "prof.left": "Осталось {n}",
+      "prof.day.one": "день",
+      "prof.day.few": "дня",
+      "prof.day.many": "дней",
+      "prof.featTitle": "Возможности",
+      "prof.premium": "Premium",
+      "feat.versions": "Версии 1.19 — 1.21.11",
+      "feat.servers": "Серверы",
+      "feat.profile": "Профиль игрока",
+      "feat.one-theme": "Одна тема на выбор",
+      "feat.themes": "Все шесть тем и свой цвет",
+      "feat.rounded-ui": "Оформление Minecraft (Rounded UI)",
+      "feat.rpc": "Discord RPC",
+      "prof.infoTitle": "Данные аккаунта",
+      "prof.id": "ID",
+      "prof.created": "Создан",
+      "prof.lastLogin": "Последний вход",
+      "prof.device": "Компьютер",
+      "prof.deviceYes": "Привязан",
+      "prof.deviceNo": "Пока не привязан",
+      "prof.secTitle": "Безопасность",
+      "prof.pwCurrent": "Текущий пароль",
+      "prof.pwNew": "Новый пароль",
+      "prof.pwSave": "Сменить пароль",
+      "prof.pwDone": "Пароль изменён. На других устройствах нужно будет войти заново.",
+      "prof.logoutAll": "Выйти на всех устройствах",
+      "prof.logoutAllConfirm": "Выйти на всех устройствах, включая лаунчер? Потребуется войти заново.",
+      "prof.startTitle": "Как начать играть",
+      "prof.todo1": "Аккаунт создан",
+      "prof.todo1t": "Ник {nick} закреплён за вами.",
+      "prof.todo2": "Установите лаунчер",
+      "prof.todo2t": "Скачайте установщик и запустите его.",
+      "prof.todo2l": "Как установить",
+      "prof.todo3": "Войдите в лаунчере",
+      "prof.todo3t": "Тот же ник и пароль. Тариф подтянется сам.",
+      "prof.todo3done": "Вы уже входили в лаунчере — всё готово.",
+      "err.wrong_password": "Текущий пароль неверный.",
+      "err.bad_password": "Пароль должен быть от 6 до 128 символов.",
       "acc.since": "Аккаунт создан {date}",
       "acc.plan.free": "Free",
       "acc.plan.1m": "1 месяц",
@@ -87,6 +131,50 @@
       "acc.step3": "Plan, term and features are pulled from the server.",
       "acc.forever": "free forever",
       "acc.until": "until {date}",
+      "prof.subTitle": "Subscription",
+      "prof.ctaFree": "Get Premium",
+      "prof.ctaPaid": "Renew subscription",
+      "prof.hintFree": "Premium unlocks all themes, Rounded UI styling and Discord RPC.",
+      "prof.hintWarn": "Your subscription ends soon — renew to keep your features.",
+      "prof.activeUntil": "Active until {date}",
+      "prof.left": "{n} left",
+      "prof.day.one": "day",
+      "prof.day.few": "days",
+      "prof.day.many": "days",
+      "prof.featTitle": "Features",
+      "prof.premium": "Premium",
+      "feat.versions": "Versions 1.19 — 1.21.11",
+      "feat.servers": "Servers",
+      "feat.profile": "Player profile",
+      "feat.one-theme": "One theme of your choice",
+      "feat.themes": "All six themes and a custom color",
+      "feat.rounded-ui": "Minecraft styling (Rounded UI)",
+      "feat.rpc": "Discord RPC",
+      "prof.infoTitle": "Account details",
+      "prof.id": "ID",
+      "prof.created": "Created",
+      "prof.lastLogin": "Last sign-in",
+      "prof.device": "Computer",
+      "prof.deviceYes": "Linked",
+      "prof.deviceNo": "Not linked yet",
+      "prof.secTitle": "Security",
+      "prof.pwCurrent": "Current password",
+      "prof.pwNew": "New password",
+      "prof.pwSave": "Change password",
+      "prof.pwDone": "Password changed. Other devices will need to sign in again.",
+      "prof.logoutAll": "Sign out everywhere",
+      "prof.logoutAllConfirm": "Sign out on all devices, including the launcher? You will need to sign in again.",
+      "prof.startTitle": "Getting started",
+      "prof.todo1": "Account created",
+      "prof.todo1t": "The nickname {nick} is yours.",
+      "prof.todo2": "Install the launcher",
+      "prof.todo2t": "Download the installer and run it.",
+      "prof.todo2l": "How to install",
+      "prof.todo3": "Sign in to the launcher",
+      "prof.todo3t": "Same nickname and password. Your plan comes along automatically.",
+      "prof.todo3done": "You have already signed in to the launcher — all set.",
+      "err.wrong_password": "The current password is wrong.",
+      "err.bad_password": "The password must be 6 to 128 characters.",
       "acc.since": "Account created {date}",
       "acc.plan.free": "Free",
       "acc.plan.1m": "1 month",
@@ -152,8 +240,24 @@
     profileAvatar: $("#profileAvatar"),
     profileSince: $("#profileSince"),
     planBadge: $("#planBadge"),
-    planUntil: $("#planUntil"),
     logout: $("#logoutBtn"),
+    regSteps: $("#regSteps"),
+    subPlan: $("#subPlan"),
+    subUntil: $("#subUntil"),
+    subMeter: $("#subMeter"),
+    subFill: $("#subFill"),
+    subHint: $("#subHint"),
+    subCta: $("#subCta"),
+    featList: $("#featList"),
+    infoList: $("#infoList"),
+    todoList: $("#todoList"),
+    pwForm: $("#pwForm"),
+    pwCurrent: $("#pwCurrent"),
+    pwNew: $("#pwNew"),
+    pwRepeat: $("#pwRepeat"),
+    pwMsg: $("#pwMsg"),
+    pwSubmit: $("#pwSubmit"),
+    logoutAll: $("#logoutAllBtn"),
   };
 
   /* ---------- i18n ---------- */
@@ -258,6 +362,7 @@
   function showAuth() {
     state.user = null;
     els.profileCard.hidden = true;
+    els.regSteps.hidden = false;
     els.authCard.hidden = false;
     els.nickname.focus({ preventScroll: true });
   }
@@ -265,8 +370,128 @@
   function showProfile(user) {
     state.user = user;
     els.authCard.hidden = true;
+    els.regSteps.hidden = true;
     els.profileCard.hidden = false;
     renderProfile();
+  }
+
+  const PLAN_DAYS = { "1m": 30, "6m": 182, "12m": 365 };
+  const FEATURES = ["versions", "servers", "profile", "one-theme", "themes", "rounded-ui", "rpc"];
+  const PAID_ONLY = new Set(["themes", "rounded-ui", "rpc"]);
+
+  const SVG_CHECK = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg>';
+  const SVG_LOCK = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="11" width="12" height="9" rx="2"/><path d="M8.5 11V8a3.5 3.5 0 017 0v3"/></svg>';
+
+  const locale = () => (lang === "ru" ? "ru-RU" : "en-GB");
+  const fmtDate = (iso) =>
+    new Intl.DateTimeFormat(locale(), { day: "numeric", month: "long", year: "numeric" }).format(new Date(iso));
+  const fmtDateTime = (iso) =>
+    new Intl.DateTimeFormat(locale(), {
+      day: "numeric", month: "long", year: "numeric", hour: "2-digit", minute: "2-digit",
+    }).format(new Date(iso));
+
+  function plural(n) {
+    if (lang !== "ru") return n === 1 ? t("prof.day.one") : t("prof.day.few");
+    const m10 = n % 10, m100 = n % 100;
+    if (m10 === 1 && m100 !== 11) return t("prof.day.one");
+    if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return t("prof.day.few");
+    return t("prof.day.many");
+  }
+
+  function el(tag, className, text) {
+    const node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  function renderSubscription(user, planKey) {
+    const paid = planKey !== "free";
+    els.subPlan.textContent = t("acc.plan." + planKey);
+    els.subCta.dataset.i18n = paid ? "prof.ctaPaid" : "prof.ctaFree";
+    els.subCta.textContent = t(paid ? "prof.ctaPaid" : "prof.ctaFree");
+
+    if (!paid || !user.planUntil) {
+      els.subUntil.textContent = t("acc.forever");
+      els.subMeter.hidden = true;
+      els.subHint.textContent = t("prof.hintFree");
+      els.subHint.classList.remove("is-warn");
+      return;
+    }
+
+    const until = new Date(user.planUntil).getTime();
+    const left = Math.max(0, Math.ceil((until - Date.now()) / 864e5));
+    const total = PLAN_DAYS[planKey] || 30;
+    const pct = Math.min(100, Math.max(4, Math.round((left / total) * 100)));
+    const warn = left <= 7;
+
+    els.subUntil.textContent = t("prof.activeUntil", { date: fmtDate(user.planUntil) });
+    els.subMeter.hidden = false;
+    els.subFill.style.width = pct + "%";
+    els.subFill.classList.toggle("is-warn", warn);
+    els.subHint.textContent = warn
+      ? t("prof.hintWarn")
+      : t("prof.left", { n: left + " " + plural(left) });
+    els.subHint.classList.toggle("is-warn", warn);
+  }
+
+  function renderFeatures(user) {
+    const have = new Set(user.features || []);
+    els.featList.replaceChildren();
+
+    FEATURES.forEach((key) => {
+      // «Одна тема» не показываем тем, у кого открыты все темы.
+      if (key === "one-theme" && have.has("themes")) return;
+
+      const on = have.has(key);
+      const li = el("li", on ? "is-on" : "is-off");
+      const mark = el("span", "ico-state");
+      mark.innerHTML = on ? SVG_CHECK : SVG_LOCK;
+      li.append(mark, el("span", "", t("feat." + key)));
+      if (!on && PAID_ONLY.has(key)) li.append(el("span", "feat__tag", t("prof.premium")));
+      els.featList.append(li);
+    });
+  }
+
+  function renderInfo(user) {
+    const rows = [
+      [t("acc.nickname"), user.nickname],
+      [t("prof.id"), "#" + user.id],
+      [t("prof.created"), user.createdAt ? fmtDate(user.createdAt) : "—"],
+      [t("prof.lastLogin"), user.lastLogin ? fmtDateTime(user.lastLogin) : "—"],
+      [t("prof.device"), user.deviceLinked ? t("prof.deviceYes") : t("prof.deviceNo")],
+    ];
+    els.infoList.replaceChildren();
+    rows.forEach(([label, value]) => {
+      const row = el("div");
+      row.append(el("dt", "", label), el("dd", "", value));
+      els.infoList.append(row);
+    });
+  }
+
+  function renderTodo(user) {
+    const linked = Boolean(user.deviceLinked);
+    const items = [
+      { done: true, title: t("prof.todo1"), text: t("prof.todo1t", { nick: user.nickname }) },
+      { done: linked, title: t("prof.todo2"), text: t("prof.todo2t"), link: ["index.html#install", t("prof.todo2l")] },
+      { done: linked, title: t("prof.todo3"), text: linked ? t("prof.todo3done") : t("prof.todo3t") },
+    ];
+    els.todoList.replaceChildren();
+    items.forEach((item, i) => {
+      const li = el("li", item.done ? "is-done" : "");
+      const top = el("div", "todo__top");
+      const mark = el("span", "todo__mark");
+      if (item.done) mark.innerHTML = SVG_CHECK;
+      else mark.textContent = String(i + 1);
+      top.append(mark, el("span", "", item.title));
+      li.append(top, el("p", "", item.text));
+      if (item.link && !item.done) {
+        const a = el("a", "", item.link[1] + " →");
+        a.href = item.link[0];
+        li.append(a);
+      }
+      els.todoList.append(li);
+    });
   }
 
   function renderProfile() {
@@ -277,33 +502,14 @@
 
     els.profileNick.textContent = user.nickname;
     els.profileAvatar.textContent = user.nickname.charAt(0);
-
-    if (user.createdAt) {
-      const created = new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : "en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(new Date(user.createdAt));
-      els.profileSince.textContent = t("acc.since", { date: created });
-    } else {
-      els.profileSince.textContent = "";
-    }
     els.planBadge.textContent = t("acc.plan." + planKey);
     els.planBadge.classList.toggle("is-free", planKey === "free");
+    els.profileSince.textContent = user.createdAt ? t("acc.since", { date: fmtDate(user.createdAt) }) : "";
 
-    if (planKey === "free") {
-      els.planUntil.textContent = t("acc.forever");
-    } else if (user.planUntil) {
-      const date = new Date(user.planUntil);
-      const formatted = new Intl.DateTimeFormat(lang === "ru" ? "ru-RU" : "en-GB", {
-        day: "numeric",
-        month: "long",
-        year: "numeric",
-      }).format(date);
-      els.planUntil.textContent = t("acc.until", { date: formatted });
-    } else {
-      els.planUntil.textContent = "";
-    }
+    renderSubscription(user, planKey);
+    renderFeatures(user);
+    renderInfo(user);
+    renderTodo(user);
   }
 
   /* ---------- действия ---------- */
@@ -364,6 +570,84 @@
     }
   }
 
+  function pwMessage(text, kind) {
+    els.pwMsg.textContent = text || "";
+    els.pwMsg.classList.toggle("is-error", kind === "error");
+    els.pwMsg.classList.toggle("is-ok", kind === "ok");
+  }
+
+  function dropSession() {
+    store.remove("uc-token");
+    store.remove("uc-nick");
+    setMode("login");
+    showAuth();
+  }
+
+  async function changePassword(event) {
+    event.preventDefault();
+    if (state.busy) return;
+
+    const current = els.pwCurrent.value;
+    const next = els.pwNew.value;
+    [els.pwCurrent, els.pwNew, els.pwRepeat].forEach((x) => x.classList.remove("is-error"));
+    pwMessage("");
+
+    if (current.length < 1) {
+      els.pwCurrent.classList.add("is-error");
+      els.pwCurrent.focus();
+      return pwMessage(t("err.wrong_password"), "error");
+    }
+    if (next.length < 6 || next.length > 128) {
+      els.pwNew.classList.add("is-error");
+      els.pwNew.focus();
+      return pwMessage(t("err.password"), "error");
+    }
+    if (els.pwRepeat.value !== next) {
+      els.pwRepeat.classList.add("is-error");
+      els.pwRepeat.focus();
+      return pwMessage(t("err.repeat"), "error");
+    }
+
+    state.busy = true;
+    els.pwSubmit.disabled = true;
+    try {
+      await api("/api/me/password", {
+        method: "POST",
+        token: store.get("uc-token", ""),
+        body: { current, next },
+      });
+      els.pwForm.reset();
+      pwMessage(t("prof.pwDone"), "ok");
+    } catch (err) {
+      if (err.status === 401) return dropSession();
+      if (err.code === "wrong_password") {
+        els.pwCurrent.classList.add("is-error");
+        els.pwCurrent.focus();
+      }
+      const key = "err." + err.code;
+      pwMessage(
+        err.code === "network" || err instanceof TypeError ? t("err.network")
+          : I18N[lang][key] ? t(key) : t("err.unknown"),
+        "error"
+      );
+    } finally {
+      state.busy = false;
+      els.pwSubmit.disabled = false;
+    }
+  }
+
+  async function logoutEverywhere() {
+    if (!window.confirm(t("prof.logoutAllConfirm"))) return;
+    try {
+      await api("/api/auth/logout-all", { method: "POST", token: store.get("uc-token", "") });
+    } catch (err) {
+      if (err.status !== 401) {
+        return pwMessage(err instanceof TypeError ? t("err.network") : t("err.unknown"), "error");
+      }
+    }
+    dropSession();
+  }
+
   async function logout() {
     const token = store.get("uc-token", "");
     store.remove("uc-token");
@@ -380,6 +664,8 @@
   els.tabs.forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.tab)));
   els.form.addEventListener("submit", submit);
   els.logout.addEventListener("click", logout);
+  els.pwForm.addEventListener("submit", changePassword);
+  els.logoutAll.addEventListener("click", logoutEverywhere);
   els.langBtn.addEventListener("click", () => applyLang(lang === "ru" ? "en" : "ru"));
 
   [els.nickname, els.password, els.repeat].forEach((el) => {
