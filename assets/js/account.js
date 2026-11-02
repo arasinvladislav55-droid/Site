@@ -43,6 +43,16 @@
       "prof.subTitle": "Подписка",
       "prof.ctaFree": "Открыть Premium",
       "prof.ctaPaid": "Продлить подписку",
+      "prof.adminPanel": "Админ-панель",
+      "prof.selfGrant": "Выдать себе подписку",
+      "prof.selfRevoke": "Отозвать",
+      "prof.selfDone": "Подписка выдана.",
+      "prof.selfRevoked": "Подписка отозвана.",
+      "rank.admin": "Администратор",
+      "rank.developer": "Разработчик",
+      "rank.player": "Игрок",
+      "err.forbidden": "Недостаточно прав.",
+      "err.not_found": "Пользователь не найден.",
       "prof.hintFree": "Premium открывает все темы, оформление Rounded UI и Discord RPC.",
       "prof.hintWarn": "Подписка скоро закончится — продлите, чтобы не потерять функции.",
       "prof.activeUntil": "Активна до {date}",
@@ -134,6 +144,16 @@
       "prof.subTitle": "Subscription",
       "prof.ctaFree": "Get Premium",
       "prof.ctaPaid": "Renew subscription",
+      "prof.adminPanel": "Admin panel",
+      "prof.selfGrant": "Grant me a subscription",
+      "prof.selfRevoke": "Revoke",
+      "prof.selfDone": "Subscription granted.",
+      "prof.selfRevoked": "Subscription revoked.",
+      "rank.admin": "Administrator",
+      "rank.developer": "Developer",
+      "rank.player": "Player",
+      "err.forbidden": "Not enough permissions.",
+      "err.not_found": "User not found.",
       "prof.hintFree": "Premium unlocks all themes, Rounded UI styling and Discord RPC.",
       "prof.hintWarn": "Your subscription ends soon — renew to keep your features.",
       "prof.activeUntil": "Active until {date}",
@@ -221,6 +241,7 @@
   document.documentElement.dataset.theme = theme;
 
   const NICK_RE = /^[A-Za-z0-9_]{3,16}$/;
+  const RANKS = ["player", "developer", "admin"];
   const state = { mode: "login", user: null, busy: false };
 
   const els = {
@@ -237,6 +258,13 @@
     submit: $("#submit"),
     submitText: $("#submitText"),
     profileNick: $("#profileNick"),
+    rankBadge: $("#rankBadge"),
+    adminLink: $("#adminLink"),
+    adminSelf: $("#adminSelf"),
+    adminSelfPlan: $("#adminSelfPlan"),
+    adminSelfGrant: $("#adminSelfGrant"),
+    adminSelfRevoke: $("#adminSelfRevoke"),
+    adminSelfMsg: $("#adminSelfMsg"),
     profileAvatar: $("#profileAvatar"),
     profileSince: $("#profileSince"),
     planBadge: $("#planBadge"),
@@ -284,6 +312,12 @@
     if (els.langBtn) {
       els.langBtn.textContent = next === "ru" ? "EN" : "RU";
       els.langBtn.setAttribute("aria-label", next === "ru" ? "Switch to English" : "Переключить на русский");
+    }
+
+    if (els.adminSelfPlan) {
+      Array.from(els.adminSelfPlan.options).forEach((opt) => {
+        opt.textContent = t("acc.plan." + opt.value);
+      });
     }
 
     els.submitText.dataset.i18n = state.mode === "login" ? "acc.signIn" : "acc.create";
@@ -494,6 +528,63 @@
     });
   }
 
+  function renderRank(user) {
+    const rank = RANKS.includes(user.rank) ? user.rank : "player";
+    const isAdmin = user.rank === "admin";
+
+    els.rankBadge.hidden = false;
+    els.rankBadge.classList.remove("rank--admin", "rank--developer", "rank--player");
+    els.rankBadge.classList.add("rank--" + rank);
+    els.rankBadge.textContent = t("rank." + rank);
+
+    els.adminLink.hidden = !isAdmin;
+    els.adminSelf.hidden = !isAdmin;
+    if (isAdmin) {
+      els.adminSelfPlan.value = store.get("uc-admin-plan", "1m");
+    }
+  }
+
+  function adminSelfMessage(text, kind) {
+    els.adminSelfMsg.textContent = text || "";
+    els.adminSelfMsg.classList.toggle("is-error", kind === "error");
+    els.adminSelfMsg.classList.toggle("is-ok", kind === "ok");
+  }
+
+  async function adminSelfAction(action) {
+    const token = store.get("uc-token", "");
+    if (!token || !state.user) return;
+
+    if (action === "grant") store.set("uc-admin-plan", els.adminSelfPlan.value);
+    els.adminSelfGrant.disabled = true;
+    els.adminSelfRevoke.disabled = true;
+    adminSelfMessage("");
+
+    try {
+      await api("/api/admin/plan", {
+        method: "POST",
+        token,
+        body: {
+          nickname: state.user.nickname,
+          plan: action === "revoke" ? "revoke" : els.adminSelfPlan.value,
+        },
+      });
+      const data = await api("/api/me", { token });
+      showProfile(data.user);
+      adminSelfMessage(action === "revoke" ? t("prof.selfRevoked") : t("prof.selfDone"), "ok");
+    } catch (err) {
+      if (err.status === 401) return dropSession();
+      const key = "err." + err.code;
+      adminSelfMessage(
+        err.code === "network" || err instanceof TypeError ? t("err.network")
+          : I18N[lang][key] ? t(key) : t("err.unknown"),
+        "error"
+      );
+    } finally {
+      els.adminSelfGrant.disabled = false;
+      els.adminSelfRevoke.disabled = false;
+    }
+  }
+
   function renderProfile() {
     const user = state.user;
     if (!user) return;
@@ -505,6 +596,7 @@
     els.planBadge.textContent = t("acc.plan." + planKey);
     els.planBadge.classList.toggle("is-free", planKey === "free");
     els.profileSince.textContent = user.createdAt ? t("acc.since", { date: fmtDate(user.createdAt) }) : "";
+    renderRank(user);
 
     renderSubscription(user, planKey);
     renderFeatures(user);
@@ -666,6 +758,8 @@
   els.logout.addEventListener("click", logout);
   els.pwForm.addEventListener("submit", changePassword);
   els.logoutAll.addEventListener("click", logoutEverywhere);
+  els.adminSelfGrant.addEventListener("click", () => adminSelfAction("grant"));
+  els.adminSelfRevoke.addEventListener("click", () => adminSelfAction("revoke"));
   els.langBtn.addEventListener("click", () => applyLang(lang === "ru" ? "en" : "ru"));
 
   [els.nickname, els.password, els.repeat].forEach((el) => {

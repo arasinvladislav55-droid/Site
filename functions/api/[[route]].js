@@ -5,8 +5,14 @@
  * Привязки и переменные (Pages → Settings → Bindings / Variables):
  *   DB               привязка D1 (обязательно)
  *   PAYMENT_SECRET   секрет вебхука платёжки (необязательно)
+ *   ADMIN_SECRET     мастер-ключ админ-панели (необязательно, порт /admin.html).
+ *                    Пока ранг admin ещё никому не выдан, админ-панель входить
+ *                    по этому ключу. Потом можно работать под аккаунтом админа.
  *   DEV              "1" включает /api/dev/plan (только для тестов!)
  *   ALLOWED_ORIGINS  домены через запятую для CORS (пусто — разрешено всем)
+ *
+ * Разовая миграция D1 (консоль Cloudflare → D1 → консоль БД, выполнить один раз):
+ *   ALTER TABLE users ADD COLUMN rank TEXT NOT NULL DEFAULT 'player';
  *   PBKDF2_ITER      сложность хеша пароля (по умолчанию 30000, максимум 100000).
  *                    На бесплатном плане лимит 10 мс CPU на запрос; на платном
  *                    плане можно ставить 100000. Старые хеши обновятся при входе.
@@ -14,6 +20,7 @@
 
 const NICK_RE = /^[A-Za-z0-9_]{3,16}$/;
 const PLAN_DAYS = { "1m": 30, "6m": 182, "12m": 365 };
+const RANKS = ["player", "developer", "admin"];
 const FREE_FEATURES = ["versions", "servers", "profile", "one-theme"];
 const PAID_FEATURES = ["themes", "rounded-ui", "rpc"];
 const SESSION_DAYS = 30;
@@ -86,6 +93,7 @@ function userJson(row) {
   return {
     id: row.id,
     nickname: row.nickname,
+    rank: RANKS.includes(row.rank) ? row.rank : "player",
     plan,
     planUntil: plan === "free" ? null : row.plan_until,
     features: plan === "free" ? FREE_FEATURES : [...FREE_FEATURES, ...PAID_FEATURES],
@@ -135,6 +143,106 @@ async function extendPlan(db, nickname, plan) {
   return userJson(await db.prepare("SELECT * FROM users WHERE id = ?").bind(row.id).first());
 }
 
+/* ───────────── админка: доступ по рангу или мастер-ключу ───────────── */
+
+function hasAdminSecret(request, env) {
+  const secret = env.ADMIN_SECRET || "";
+  if (!secret) return false;
+  const given = request.headers.get("x-admin-secret") || "";
+  return given.length > 0 && safeEqual(enc.encode(given), enc.encode(secret));
+}
+
+// Возвращает аккаунт админа или null. Сначала пробуем мастер-ключ,
+// затем ранг admin у пользователя из сессии.
+async function requireAdmin(db, request, env) {
+  if (hasAdminSecret(request, env)) return true;
+  const user = await currentUser(db, request);
+  return user && user.rank === "admin" ? user : null;
+}
+
+/* ───────────── обработчики админ-панели ───────────── */
+
+async function adminSession({ request, env, r }) {
+  let mode = null;
+  if (hasAdminSecret(request, env)) {
+    mode = "secret";
+  } else {
+    const user = await currentUser(env.DB, request);
+    if (user && user.rank === "admin") mode = "session";
+  }
+  if (!mode) return r.fail(403, "forbidden", "Доступ только для администраторов.");
+  return r.json(200, { ok: true, mode });
+}
+
+async function adminSearch({ request, env, r }) {
+  if (!(await requireAdmin(env.DB, request, env)))
+    return r.fail(403, "forbidden", "Доступ только для администраторов.");
+
+  const q = (new URL(request.url).searchParams.get("q") || "").trim().slice(0, 40);
+  const stmt = q
+    ? env.DB
+        .prepare("SELECT * FROM users WHERE nickname LIKE ? ORDER BY id DESC LIMIT 25")
+        .bind("%" + q + "%")
+    : env.DB.prepare("SELECT * FROM users ORDER BY id DESC LIMIT 25");
+  const { results } = await stmt.all();
+  return r.json(200, {
+    users: (results || []).map((row) => ({
+      id: row.id,
+      nickname: row.nickname,
+      rank: RANKS.includes(row.rank) ? row.rank : "player",
+      plan: planOf(row),
+      planUntil: row.plan_until,
+    })),
+  });
+}
+
+async function adminSetRank({ request, env, r }) {
+  const db = env.DB;
+  if (!(await requireAdmin(db, request, env)))
+    return r.fail(403, "forbidden", "Доступ только для администраторов.");
+
+  const body = await readBody(request);
+  const nickname = String(body.nickname || "").trim();
+  const rank = String(body.rank || "").trim();
+  if (!RANKS.includes(rank))
+    return r.fail(400, "bad_rank", "Ранг должен быть player, developer или admin.");
+  if (!NICK_RE.test(nickname)) return r.fail(400, "bad_nickname", "Некорректный ник.");
+
+  const row = await db.prepare("SELECT * FROM users WHERE nickname = ?").bind(nickname).first();
+  if (!row) return r.fail(404, "not_found", "Пользователь не найден.");
+
+  // Нельзя понизить единственного администратора.
+  if (row.rank === "admin" && rank !== "admin") {
+    const { c } = await db.prepare("SELECT COUNT(*) AS c FROM users WHERE rank = 'admin'").first();
+    if (c <= 1) return r.fail(400, "last_admin", "Нельзя снять ранг с последнего администратора.");
+  }
+
+  await db.prepare("UPDATE users SET rank = ? WHERE id = ?").bind(rank, row.id).run();
+  return r.json(200, { user: userJson(await db.prepare("SELECT * FROM users WHERE id = ?").bind(row.id).first()) });
+}
+
+async function adminSetPlan({ request, env, r }) {
+  const db = env.DB;
+  if (!(await requireAdmin(db, request, env)))
+    return r.fail(403, "forbidden", "Доступ только для администраторов.");
+
+  const body = await readBody(request);
+  const nickname = String(body.nickname || "").trim();
+  const plan = String(body.plan || "").trim();
+
+  if (plan === "revoke") {
+    const row = await db.prepare("SELECT * FROM users WHERE nickname = ?").bind(nickname).first();
+    if (!row) return r.fail(404, "not_found", "Пользователь не найден.");
+    await db.prepare("UPDATE users SET plan = 'free', plan_until = NULL WHERE id = ?").bind(row.id).run();
+    return r.json(200, { user: userJson(await db.prepare("SELECT * FROM users WHERE id = ?").bind(row.id).first()) });
+  }
+
+  const user = await extendPlan(db, nickname, plan);
+  if (!user)
+    return r.fail(400, "bad_request", "Нужны nickname и plan (1m/6m/12m или revoke). Пользователь не найден.");
+  return r.json(200, { user });
+}
+
 /* ───────────── защита от перебора (в D1, общая для всех копий воркера) ───────────── */
 
 async function tooMany(db, ip) {
@@ -162,7 +270,7 @@ function corsHeaders(request, env) {
   const h = {
     Vary: "Origin",
     "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Webhook-Secret",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization, X-Webhook-Secret, X-Admin-Secret",
     "Access-Control-Max-Age": "86400",
   };
   if (allowed.length === 0) h["Access-Control-Allow-Origin"] = origin || "*";
@@ -359,6 +467,10 @@ export async function onRequest({ request, env }) {
     if (pathname === "/api/me/password" && m === "POST") return await changePassword(ctx);
     if (pathname === "/api/dev/plan" && m === "POST") return await devPlan(ctx);
     if (pathname === "/api/payments/webhook" && m === "POST") return await webhook(ctx);
+    if (pathname === "/api/admin/session" && m === "GET") return await adminSession(ctx);
+    if (pathname === "/api/admin/users" && m === "GET") return await adminSearch(ctx);
+    if (pathname === "/api/admin/rank" && m === "POST") return await adminSetRank(ctx);
+    if (pathname === "/api/admin/plan" && m === "POST") return await adminSetPlan(ctx);
     return r.fail(404, "not_found", "Нет такого метода.");
   } catch (e) {
     if (e.message === "bad_json") return r.fail(400, "bad_json", "Некорректный JSON.");

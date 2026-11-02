@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="emerald">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Админ-панель — Universal Client</title>
+<meta name="description" content="Админ-панель Universal Client: ранги и подписки.">
+<meta name="theme-color" content="#070a12">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="assets/img/icon.png">
+<link rel="stylesheet" href="assets/css/style.css">
+<link rel="stylesheet" href="assets/css/account.css">
+<link rel="stylesheet" href="assets/css/admin.css">
+<script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="bg-glow bg-glow--a"></div>
+  <div class="bg-glow bg-glow--b"></div>
+</div>
+
+<header class="header" id="header">
+  <div class="wrap header__inner">
+    <a class="brand" href="index.html" aria-label="Universal Client">
+      <img class="brand__icon" src="assets/img/icon.png" alt="" width="36" height="36">
+      <span class="brand__text">Universal<span>Client</span></span>
+      <span class="brand__ver">admin</span>
+    </a>
+
+    <div class="header__actions">
+      <button class="lang" id="admLang" type="button" aria-label="Switch language">EN</button>
+      <a class="btn btn--ghost btn--sm" href="account.html">
+        <span data-i18n="adm.profile">Кабинет</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<main class="apanel">
+  <div class="wrap apanel__wrap">
+
+    <!-- Вход по мастер-ключу -->
+    <section class="pcard apanel__gate" id="gateCard" hidden>
+      <span class="eyebrow" data-i18n="adm.eyebrow">Админ-панель</span>
+      <h1 class="apanel__title" data-i18n="adm.gateTitle">Доступ только для администраторов</h1>
+      <p class="apanel__lead" data-i18n="adm.gateLead">
+        Войдите в кабинет под аккаунтом с рангом «Администратор» — или введите мастер-ключ
+        (переменная ADMIN_SECRET на сервере), чтобы выдать ранг самому себе в первый раз.
+      </p>
+
+      <form class="acc__form" id="gateForm" novalidate>
+        <label class="acc__field">
+          <span data-i18n="adm.secret">Мастер-ключ (необязательно)</span>
+          <input id="secret" type="password" maxlength="128" autocomplete="off" placeholder="••••••••">
+        </label>
+        <p class="acc__msg" id="gateMsg" role="status" aria-live="polite"></p>
+        <button class="btn btn--primary btn--block btn--lg" id="gateSubmit" type="submit" data-i18n="adm.enter">Открыть панель</button>
+      </form>
+
+      <p class="acc__note" data-i18n="adm.gateNote">
+        Ключ хранится только в этой вкладке (sessionStorage) и больше никуда не отправляется.
+      </p>
+    </section>
+
+    <!-- Сама панель -->
+    <section class="apanel__body" id="panelCard" hidden>
+
+      <header class="pcard apanel__head">
+        <div>
+          <span class="eyebrow" data-i18n="adm.eyebrow">Админ-панель</span>
+          <h1 class="apanel__title" data-i18n="adm.title">Ранги и подписки</h1>
+          <p class="apanel__lead" id="admMode"></p>
+        </div>
+        <button class="btn btn--ghost" id="exitBtn" type="button" data-i18n="adm.exit">Выйти</button>
+      </header>
+
+      <article class="pcard">
+        <h2 class="pcard__title" data-i18n="adm.usersTitle">Пользователи</h2>
+        <form class="adm-search" id="searchForm" novalidate>
+          <input id="search" type="search" maxlength="40" autocomplete="off"
+                 spellcheck="false" data-i18n-ph="adm.searchPh" placeholder="Поиск по нику…">
+          <button class="btn btn--primary" id="searchBtn" type="submit" data-i18n="adm.search">Найти</button>
+        </form>
+        <p class="acc__msg" id="admMsg" role="status" aria-live="polite"></p>
+        <div class="adm-list" id="userList"></div>
+      </article>
+
+    </section>
+
+  </div>
+</main>
+
+<script src="assets/js/admin.js"></script>
+</body>
+</html>
