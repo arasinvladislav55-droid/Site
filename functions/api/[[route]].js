@@ -243,6 +243,31 @@ async function adminSetPlan({ request, env, r }) {
   return r.json(200, { user });
 }
 
+async function adminSetPassword({ request, env, r }) {
+  const db = env.DB;
+  if (!(await requireAdmin(db, request, env)))
+    return r.fail(403, "forbidden", "Доступ только для администраторов.");
+
+  const body = await readBody(request);
+  const nickname = String(body.nickname || "").trim();
+  const password = String(body.password || "");
+
+  if (!NICK_RE.test(nickname)) return r.fail(400, "bad_nickname", "Некорректный ник.");
+  if (password.length < 6 || password.length > 128)
+    return r.fail(400, "bad_password", "Пароль: от 6 до 128 символов.");
+
+  const row = await db.prepare("SELECT id FROM users WHERE nickname = ?").bind(nickname).first();
+  if (!row) return r.fail(404, "not_found", "Пользователь не найден.");
+
+  await db
+    .prepare("UPDATE users SET pass_hash = ? WHERE id = ?")
+    .bind(await hashPassword(password, iterOf(env)), row.id)
+    .run();
+  // Все сессии игрока сбрасываются: на устройствах придётся войти заново.
+  await db.prepare("DELETE FROM sessions WHERE user_id = ?").bind(row.id).run();
+  return r.json(200, { ok: true });
+}
+
 /* ───────────── защита от перебора (в D1, общая для всех копий воркера) ───────────── */
 
 async function tooMany(db, ip) {
@@ -471,6 +496,7 @@ export async function onRequest({ request, env }) {
     if (pathname === "/api/admin/users" && m === "GET") return await adminSearch(ctx);
     if (pathname === "/api/admin/rank" && m === "POST") return await adminSetRank(ctx);
     if (pathname === "/api/admin/plan" && m === "POST") return await adminSetPlan(ctx);
+    if (pathname === "/api/admin/password" && m === "POST") return await adminSetPassword(ctx);
     return r.fail(404, "not_found", "Нет такого метода.");
   } catch (e) {
     if (e.message === "bad_json") return r.fail(400, "bad_json", "Некорректный JSON.");

@@ -223,6 +223,13 @@
   color: var(--text);
   font: inherit;
   font-size: 0.86rem;
+  color-scheme: dark;
+}
+
+.admin-self select option,
+.admin-self select optgroup {
+  background: #0a0e15;
+  color: var(--text);
 }
 
 /* ---------- профиль (кабинет) ---------- */

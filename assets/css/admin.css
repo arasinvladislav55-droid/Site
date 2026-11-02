@@ -110,7 +110,8 @@
   gap: 8px;
 }
 
-.adm-user select {
+.adm-user select,
+.adm-user input[type="password"] {
   padding: 8px 10px;
   border-radius: 10px;
   border: 1px solid var(--line-strong);
@@ -118,6 +119,27 @@
   color: var(--text);
   font: inherit;
   font-size: 0.84rem;
+  color-scheme: dark;
+}
+
+/* Тёмный фон у выпадающего списка (иначе системный белый) */
+.adm-user select option,
+.adm-user select optgroup {
+  background: #0a0e15;
+  color: var(--text);
+}
+
+.adm-user input[type="password"] {
+  width: 180px;
+}
+
+.adm-user input[type="password"]::placeholder {
+  color: color-mix(in srgb, var(--muted) 85%, transparent);
+}
+
+.adm-user input[type="password"]:focus {
+  outline: none;
+  border-color: color-mix(in srgb, var(--a) 60%, transparent);
 }
 
 .adm-user .btn {

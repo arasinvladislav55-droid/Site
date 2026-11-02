@@ -29,6 +29,8 @@
       "adm.modeSession": "Вход по аккаунту администратора.",
       "adm.empty": "Ничего не найдено.",
       "adm.rankApply": "Применить",
+      "adm.passwordPh": "Новый пароль (мин. 6)",
+      "adm.pwApply": "Сменить пароль",
       "adm.planGrant": "Выдать",
       "adm.planRevoke": "Отозвать",
       "adm.planUntil": "до {date}",
@@ -43,10 +45,21 @@
       "ok.rank": "Ранг обновлён.",
       "ok.grant": "Подписка выдана.",
       "ok.revoke": "Подписка отозвана.",
+      "ok.password": "Пароль изменён. Сессии игрока сброшены.",
+      "ok.passwordSelf": "Пароль изменён. Ваша сессия тоже сброшена — войдите заново.",
       "err.network": "Нет связи с сервером. Попробуйте ещё раз.",
       "err.unknown": "Что-то пошло не так.",
       "err.forbidden": "Доступ только для администраторов.",
-      "err.not_found": "Пользователь не найден."
+      "err.not_found": "Пользователь не найден.",
+      "err.last_admin": "Нельзя снять ранг с последнего администратора.",
+      "err.bad_rank": "Неверный ранг.",
+      "err.bad_nickname": "Некорректный ник.",
+      "err.bad_request": "Неверный запрос.",
+      "err.bad_password": "Пароль: от 6 до 128 символов.",
+      "err.unauthorized": "Сессия истекла, обновите страницу.",
+      "err.too_large": "Слишком большой запрос.",
+      "err.bad_json": "Некорректный JSON.",
+      "err.server_error": "Ошибка сервера. Попробуйте ещё раз."
     },
     en: {
       "adm.profile": "Account",
@@ -65,6 +78,8 @@
       "adm.modeSession": "Signed in with an administrator account.",
       "adm.empty": "Nothing found.",
       "adm.rankApply": "Apply",
+      "adm.passwordPh": "New password (min. 6)",
+      "adm.pwApply": "Set password",
       "adm.planGrant": "Grant",
       "adm.planRevoke": "Revoke",
       "adm.planUntil": "until {date}",
@@ -79,10 +94,21 @@
       "ok.rank": "Rank updated.",
       "ok.grant": "Subscription granted.",
       "ok.revoke": "Subscription revoked.",
+      "ok.password": "Password updated. Player sessions were reset.",
+      "ok.passwordSelf": "Password updated. Your session was reset too — sign in again.",
       "err.network": "No connection to the server. Try again.",
       "err.unknown": "Something went wrong.",
       "err.forbidden": "Administrators only.",
-      "err.not_found": "User not found."
+      "err.not_found": "User not found.",
+      "err.last_admin": "You can't demote the last administrator.",
+      "err.bad_rank": "Invalid rank.",
+      "err.bad_nickname": "Invalid nickname.",
+      "err.bad_request": "Bad request.",
+      "err.bad_password": "Password: 6 to 128 characters.",
+      "err.unauthorized": "Session expired, refresh the page.",
+      "err.too_large": "Request too large.",
+      "err.bad_json": "Malformed JSON.",
+      "err.server_error": "Server error. Try again."
     }
   };
 
@@ -204,6 +230,15 @@
     els.admMsg.classList.toggle("is-ok", kind === "ok");
   }
 
+  // Сначала свой перевод по коду, затем настоящий текст ошибки сервера.
+  function errText(err) {
+    if (err instanceof TypeError) return t("err.network");
+    const key = "err." + (err && err.code);
+    if (I18N[lang][key]) return t(key);
+    if (err && err.message && !/^HTTP/.test(err.message)) return err.message;
+    return t("err.unknown");
+  }
+
   /* ---------- вид ---------- */
 
   function showGate(text, kind) {
@@ -288,8 +323,7 @@
         message(t("ok.rank"), "ok");
         onAction();
       } catch (err) {
-        const key = "err." + err.code;
-        message(I18N[lang][key] ? t(key) : t("err.unknown"), "error");
+        message(errText(err), "error");
         busy = false;
       }
     });
@@ -318,8 +352,7 @@
         message(t("ok.grant"), "ok");
         onAction();
       } catch (err) {
-        const key = "err." + err.code;
-        message(I18N[lang][key] ? t(key) : t("err.unknown"), "error");
+        message(errText(err), "error");
         busy = false;
       }
     });
@@ -339,13 +372,45 @@
         message(t("ok.revoke"), "ok");
         onAction();
       } catch (err) {
-        const key = "err." + err.code;
-        message(I18N[lang][key] ? t(key) : t("err.unknown"), "error");
+        message(errText(err), "error");
         busy = false;
       }
     });
 
-    actions.append(rankSel, rankBtn, planSel, grantBtn, revokeBtn);
+    // Сброс пароля: админ задаёт новый, сессии игрока сбрасываются.
+    const pwInput = document.createElement("input");
+    pwInput.type = "password";
+    pwInput.maxLength = 128;
+    pwInput.autocomplete = "new-password";
+    pwInput.placeholder = t("adm.passwordPh");
+    const pwBtn = document.createElement("button");
+    pwBtn.className = "btn btn--ghost";
+    pwBtn.type = "button";
+    pwBtn.textContent = t("adm.pwApply");
+    pwBtn.addEventListener("click", async () => {
+      if (busy) return;
+      const pw = pwInput.value;
+      if (pw.length < 6 || pw.length > 128) {
+        pwInput.focus();
+        return message(t("err.bad_password"), "error");
+      }
+      busy = true;
+      try {
+        await api("/api/admin/password", {
+          method: "POST",
+          body: { nickname: user.nickname, password: pw },
+        });
+        pwInput.value = "";
+        // Если админ сменил пароль себе — его сессия тоже сброшена.
+        message(user.nickname === store.get("uc-nick", "") ? t("ok.passwordSelf") : t("ok.password"), "ok");
+        busy = false;
+      } catch (err) {
+        message(errText(err), "error");
+        busy = false;
+      }
+    });
+
+    actions.append(rankSel, rankBtn, planSel, grantBtn, revokeBtn, pwInput, pwBtn);
     card.append(id, actions);
     return card;
   }
@@ -364,7 +429,7 @@
       busy = false;
     } catch (err) {
       if (err.status === 403) return showGate(t("err.forbidden"), "error");
-      message(err instanceof TypeError ? t("err.network") : t("err.unknown"), "error");
+      message(errText(err), "error");
       busy = false;
     }
   }
