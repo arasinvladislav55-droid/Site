@@ -273,6 +273,30 @@
   transition: border-color 0.3s var(--ease), box-shadow 0.35s var(--ease), transform 0.4s var(--ease-out);
 }
 
+/* вращающаяся неон-рамка панели */
+.pcard::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  padding: 1px;
+  background: conic-gradient(from var(--ang), color-mix(in srgb, var(--a) 55%, transparent), transparent 100deg, color-mix(in srgb, var(--b) 45%, transparent) 220deg, transparent 300deg, color-mix(in srgb, var(--a) 55%, transparent) 360deg);
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+          mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+          mask-composite: exclude;
+  opacity: 0.16;
+  animation: pcard-spin 11s linear infinite;
+  pointer-events: none;
+  transition: opacity 0.4s var(--ease);
+}
+
+@keyframes pcard-spin {
+  to { --ang: 360deg; }
+}
+
+.pcard:hover::after { opacity: 0.42; }
+
 .pcard:hover {
   border-color: color-mix(in srgb, var(--a) 22%, var(--line));
   box-shadow: 0 22px 46px -30px rgb(0 0 0 / 80%);
