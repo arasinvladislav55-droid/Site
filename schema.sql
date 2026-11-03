@@ -23,3 +23,9 @@ CREATE TABLE IF NOT EXISTS rate (
   n         INTEGER NOT NULL,
   reset_at  INTEGER NOT NULL
 );
+
+/*
+ * Ранг пользователя (миграция — ALTER TABLE users ADD COLUMN rank TEXT
+ * NOT NULL DEFAULT 'player';). Уровни: owner 7, developer 6, manager 5,
+ * deputy_manager 4, admin 3, junior_admin 2, player 0.
+ */

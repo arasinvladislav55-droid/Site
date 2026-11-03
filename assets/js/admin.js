@@ -8,7 +8,8 @@
       ? "http://127.0.0.1:8787"
       : "");
 
-  const RANKS = ["player", "developer", "admin"];
+  // Порядок в списке — от высшего к низшему.
+  const RANKS = ["owner", "developer", "manager", "deputy_manager", "admin", "junior_admin", "player"];
   const PLANS = ["1m", "6m", "12m", "revoke"];
 
   const I18N = {
@@ -29,14 +30,22 @@
       "adm.modeSession": "Вход по аккаунту администратора.",
       "adm.empty": "Ничего не найдено.",
       "adm.rankApply": "Применить",
+      "adm.groupRank": "Ранг",
+      "adm.groupPlan": "Подписка",
+      "adm.groupPw": "Пароль",
+      "adm.you": "это вы",
       "adm.passwordPh": "Новый пароль (мин. 6)",
       "adm.pwApply": "Сменить пароль",
       "adm.planGrant": "Выдать",
       "adm.planRevoke": "Отозвать",
       "adm.planUntil": "до {date}",
       "adm.forever": "Free",
-      "rank.admin": "Администратор",
+      "rank.owner": "Владелец",
       "rank.developer": "Разработчик",
+      "rank.manager": "Менеджер",
+      "rank.deputy_manager": "Зам. Менеджера",
+      "rank.admin": "Администратор",
+      "rank.junior_admin": "Мл. Администратор",
       "rank.player": "Игрок",
       "acc.plan.1m": "1 месяц",
       "acc.plan.6m": "6 месяцев",
@@ -51,7 +60,6 @@
       "err.unknown": "Что-то пошло не так.",
       "err.forbidden": "Доступ только для администраторов.",
       "err.not_found": "Пользователь не найден.",
-      "err.last_admin": "Нельзя снять ранг с последнего администратора.",
       "err.bad_rank": "Неверный ранг.",
       "err.bad_nickname": "Некорректный ник.",
       "err.bad_request": "Неверный запрос.",
@@ -78,14 +86,22 @@
       "adm.modeSession": "Signed in with an administrator account.",
       "adm.empty": "Nothing found.",
       "adm.rankApply": "Apply",
+      "adm.groupRank": "Rank",
+      "adm.groupPlan": "Subscription",
+      "adm.groupPw": "Password",
+      "adm.you": "you",
       "adm.passwordPh": "New password (min. 6)",
       "adm.pwApply": "Set password",
       "adm.planGrant": "Grant",
       "adm.planRevoke": "Revoke",
       "adm.planUntil": "until {date}",
       "adm.forever": "Free",
-      "rank.admin": "Administrator",
+      "rank.owner": "Owner",
       "rank.developer": "Developer",
+      "rank.manager": "Manager",
+      "rank.deputy_manager": "Deputy Manager",
+      "rank.admin": "Administrator",
+      "rank.junior_admin": "Junior Administrator",
       "rank.player": "Player",
       "acc.plan.1m": "1 month",
       "acc.plan.6m": "6 months",
@@ -100,7 +116,6 @@
       "err.unknown": "Something went wrong.",
       "err.forbidden": "Administrators only.",
       "err.not_found": "User not found.",
-      "err.last_admin": "You can't demote the last administrator.",
       "err.bad_rank": "Invalid rank.",
       "err.bad_nickname": "Invalid nickname.",
       "err.bad_request": "Bad request.",
@@ -270,34 +285,65 @@
   }
 
   function userNode(user, onAction) {
+    const rank = RANKS.includes(user.rank) ? user.rank : "player";
+    const isSelf = user.nickname.toLowerCase() === store.get("uc-nick", "").toLowerCase();
+
     const card = document.createElement("div");
     card.className = "adm-user";
     card.dataset.id = user.id;
 
+    /* --- avatar --- */
+    const avatar = document.createElement("div");
+    avatar.className = "adm-user__avatar";
+    avatar.textContent = (user.nickname[0] || "?").toUpperCase();
+
+    /* --- блок с ником и бейджами --- */
     const id = document.createElement("div");
     id.className = "adm-user__id";
+
+    const nickrow = document.createElement("div");
+    nickrow.className = "adm-user__nickrow";
     const nick = document.createElement("div");
     nick.className = "adm-user__nick";
     nick.textContent = user.nickname;
+    const rankBadge = document.createElement("span");
+    rankBadge.className = "rank rank--" + rank;
+    rankBadge.textContent = t("rank." + rank);
+    if (isSelf) {
+      const you = document.createElement("span");
+      you.className = "adm-user__you";
+      you.textContent = t("adm.you");
+      nickrow.append(nick, you);
+    } else nickrow.append(nick);
+
     const meta = document.createElement("div");
     meta.className = "adm-user__meta";
-
     const planBadge = document.createElement("span");
     planBadge.className = "acc__badge" + (user.plan === "free" ? " is-free" : "");
     planBadge.textContent = planLabel(user);
-
-    const rankBadge = document.createElement("span");
-    rankBadge.className = "rank rank--" + (RANKS.includes(user.rank) ? user.rank : "player");
-    rankBadge.textContent = t("rank." + (RANKS.includes(user.rank) ? user.rank : "player"));
-
     const idTxt = document.createElement("span");
+    idTxt.className = "adm-user__uid";
     idTxt.textContent = "#" + user.id;
+    meta.append(planBadge, idTxt);
 
-    meta.append(planBadge, rankBadge, idTxt);
-    id.append(nick, meta);
+    id.append(nickrow, meta);
 
+    /* --- блоки действий --- */
     const actions = document.createElement("div");
     actions.className = "adm-user__actions";
+
+    const group = (name, ...items) => {
+      const g = document.createElement("div");
+      g.className = "adm-group";
+      const label = document.createElement("span");
+      label.className = "adm-group__label";
+      label.textContent = name;
+      const ctrl = document.createElement("div");
+      ctrl.className = "adm-group__ctrl";
+      ctrl.append(...items);
+      g.append(label, ctrl);
+      return g;
+    };
 
     const rankSel = document.createElement("select");
     RANKS.forEach((rk) => {
@@ -306,15 +352,16 @@
       opt.textContent = t("rank." + rk);
       rankSel.append(opt);
     });
-    rankSel.value = user.rank;
+    rankSel.value = rank;
 
     const rankBtn = document.createElement("button");
-    rankBtn.className = "btn btn--ghost";
+    rankBtn.className = "btn btn--ghost btn--sm";
     rankBtn.type = "button";
     rankBtn.textContent = t("adm.rankApply");
     rankBtn.addEventListener("click", async () => {
       if (busy) return;
       busy = true;
+      rankBtn.disabled = true;
       try {
         await api("/api/admin/rank", {
           method: "POST",
@@ -325,6 +372,7 @@
       } catch (err) {
         message(errText(err), "error");
         busy = false;
+        rankBtn.disabled = false;
       }
     });
 
@@ -338,7 +386,7 @@
     planSel.value = "1m";
 
     const grantBtn = document.createElement("button");
-    grantBtn.className = "btn btn--primary";
+    grantBtn.className = "btn btn--primary btn--sm";
     grantBtn.type = "button";
     grantBtn.textContent = t("adm.planGrant");
     grantBtn.addEventListener("click", async () => {
@@ -358,7 +406,7 @@
     });
 
     const revokeBtn = document.createElement("button");
-    revokeBtn.className = "btn btn--ghost";
+    revokeBtn.className = "btn btn--ghost btn--sm";
     revokeBtn.type = "button";
     revokeBtn.textContent = t("adm.planRevoke");
     revokeBtn.addEventListener("click", async () => {
@@ -384,7 +432,7 @@
     pwInput.autocomplete = "new-password";
     pwInput.placeholder = t("adm.passwordPh");
     const pwBtn = document.createElement("button");
-    pwBtn.className = "btn btn--ghost";
+    pwBtn.className = "btn btn--ghost btn--sm";
     pwBtn.type = "button";
     pwBtn.textContent = t("adm.pwApply");
     pwBtn.addEventListener("click", async () => {
@@ -410,8 +458,13 @@
       }
     });
 
-    actions.append(rankSel, rankBtn, planSel, grantBtn, revokeBtn, pwInput, pwBtn);
-    card.append(id, actions);
+    actions.append(
+      group(t("adm.groupRank"), rankSel, rankBtn),
+      group(t("adm.groupPlan"), planSel, grantBtn, revokeBtn),
+      group(t("adm.groupPw"), pwInput, pwBtn)
+    );
+
+    card.append(avatar, id, actions);
     return card;
   }
 

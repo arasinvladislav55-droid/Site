@@ -48,8 +48,12 @@
       "prof.selfRevoke": "Отозвать",
       "prof.selfDone": "Подписка выдана.",
       "prof.selfRevoked": "Подписка отозвана.",
-      "rank.admin": "Администратор",
+      "rank.owner": "Владелец",
       "rank.developer": "Разработчик",
+      "rank.manager": "Менеджер",
+      "rank.deputy_manager": "Зам. Менеджера",
+      "rank.admin": "Администратор",
+      "rank.junior_admin": "Мл. Администратор",
       "rank.player": "Игрок",
       "err.forbidden": "Недостаточно прав.",
       "err.not_found": "Пользователь не найден.",
@@ -149,8 +153,12 @@
       "prof.selfRevoke": "Revoke",
       "prof.selfDone": "Subscription granted.",
       "prof.selfRevoked": "Subscription revoked.",
-      "rank.admin": "Administrator",
+      "rank.owner": "Owner",
       "rank.developer": "Developer",
+      "rank.manager": "Manager",
+      "rank.deputy_manager": "Deputy Manager",
+      "rank.admin": "Administrator",
+      "rank.junior_admin": "Junior Administrator",
       "rank.player": "Player",
       "err.forbidden": "Not enough permissions.",
       "err.not_found": "User not found.",
@@ -241,7 +249,8 @@
   document.documentElement.dataset.theme = theme;
 
   const NICK_RE = /^[A-Za-z0-9_]{3,16}$/;
-  const RANKS = ["player", "developer", "admin"];
+  const RANKS = ["player", "junior_admin", "admin", "deputy_manager", "manager", "developer", "owner"];
+  const RANK_CLASS = ["rank--owner", "rank--developer", "rank--manager", "rank--deputy_manager", "rank--admin", "rank--junior_admin", "rank--player"];
   const state = { mode: "login", user: null, busy: false };
 
   const els = {
@@ -530,10 +539,10 @@
 
   function renderRank(user) {
     const rank = RANKS.includes(user.rank) ? user.rank : "player";
-    const isAdmin = user.rank === "admin";
+    const isAdmin = ["junior_admin", "admin", "deputy_manager", "manager", "developer", "owner"].includes(user.rank);
 
     els.rankBadge.hidden = false;
-    els.rankBadge.classList.remove("rank--admin", "rank--developer", "rank--player");
+    els.rankBadge.classList.remove(...RANK_CLASS);
     els.rankBadge.classList.add("rank--" + rank);
     els.rankBadge.textContent = t("rank." + rank);
 

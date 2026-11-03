@@ -13,6 +13,9 @@
  *
  * Разовая миграция D1 (консоль Cloudflare → D1 → консоль БД, выполнить один раз):
  *   ALTER TABLE users ADD COLUMN rank TEXT NOT NULL DEFAULT 'player';
+ *   Значения ранга (чем выше уровень — тем важнее):
+ *     owner 7 / developer 6 / manager 5 / deputy_manager 4 /
+ *     admin 3 / junior_admin 2 / player 0
  *   PBKDF2_ITER      сложность хеша пароля (по умолчанию 30000, максимум 100000).
  *                    На бесплатном плане лимит 10 мс CPU на запрос; на платном
  *                    плане можно ставить 100000. Старые хеши обновятся при входе.
@@ -20,7 +23,18 @@
 
 const NICK_RE = /^[A-Za-z0-9_]{3,16}$/;
 const PLAN_DAYS = { "1m": 30, "6m": 182, "12m": 365 };
-const RANKS = ["player", "developer", "admin"];
+const RANKS = ["player", "junior_admin", "admin", "deputy_manager", "manager", "developer", "owner"];
+/* Уровень ранга: 0 — игрок, 7 — владелец. admin(3) и выше — доступ к админ-панели. */
+const RANK_LEVEL = {
+  player: 0,
+  junior_admin: 2,
+  admin: 3,
+  deputy_manager: 4,
+  manager: 5,
+  developer: 6,
+  owner: 7,
+};
+const rankLevel = (r) => RANK_LEVEL[r] || 0;
 const FREE_FEATURES = ["versions", "servers", "profile", "one-theme"];
 const PAID_FEATURES = ["themes", "rounded-ui", "rpc"];
 const SESSION_DAYS = 30;
@@ -153,11 +167,11 @@ function hasAdminSecret(request, env) {
 }
 
 // Возвращает аккаунт админа или null. Сначала пробуем мастер-ключ,
-// затем ранг admin у пользователя из сессии.
+// затем ранг admin и выше у пользователя из сессии.
 async function requireAdmin(db, request, env) {
   if (hasAdminSecret(request, env)) return true;
   const user = await currentUser(db, request);
-  return user && user.rank === "admin" ? user : null;
+  return user && rankLevel(user.rank) >= RANK_LEVEL.admin ? user : null;
 }
 
 /* ───────────── обработчики админ-панели ───────────── */
@@ -168,7 +182,7 @@ async function adminSession({ request, env, r }) {
     mode = "secret";
   } else {
     const user = await currentUser(env.DB, request);
-    if (user && user.rank === "admin") mode = "session";
+    if (user && rankLevel(user.rank) >= RANK_LEVEL.admin) mode = "session";
   }
   if (!mode) return r.fail(403, "forbidden", "Доступ только для администраторов.");
   return r.json(200, { ok: true, mode });
@@ -205,18 +219,18 @@ async function adminSetRank({ request, env, r }) {
   const nickname = String(body.nickname || "").trim();
   const rank = String(body.rank || "").trim();
   if (!RANKS.includes(rank))
-    return r.fail(400, "bad_rank", "Ранг должен быть player, developer или admin.");
+    return r.fail(
+      400,
+      "bad_rank",
+      "Неверный ранг. Допустимо: " + RANKS.join(", ") + "."
+    );
   if (!NICK_RE.test(nickname)) return r.fail(400, "bad_nickname", "Некорректный ник.");
 
   const row = await db.prepare("SELECT * FROM users WHERE nickname = ?").bind(nickname).first();
   if (!row) return r.fail(404, "not_found", "Пользователь не найден.");
 
-  // Нельзя понизить единственного администратора.
-  if (row.rank === "admin" && rank !== "admin") {
-    const { c } = await db.prepare("SELECT COUNT(*) AS c FROM users WHERE rank = 'admin'").first();
-    if (c <= 1) return r.fail(400, "last_admin", "Нельзя снять ранг с последнего администратора.");
-  }
-
+  // Ранг можно менять у любого пользователя без ограничений:
+  // даже если это был единственный администратор.
   await db.prepare("UPDATE users SET rank = ? WHERE id = ?").bind(rank, row.id).run();
   return r.json(200, { user: userJson(await db.prepare("SELECT * FROM users WHERE id = ?").bind(row.id).first()) });
 }

@@ -171,12 +171,12 @@
   border: 1px solid var(--line-strong);
 }
 
-.rank--admin {
-  color: #ffd9da;
+.rank--owner {
+  color: #fff7dd;
   text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
-  background: linear-gradient(135deg, #ff5a5f, #c81e34);
-  border-color: rgb(255 106 112 / 45%);
-  box-shadow: 0 8px 22px -10px rgb(233 51 67 / 55%);
+  background: linear-gradient(135deg, #ffce54, #d99a1b);
+  border-color: rgb(255 210 110 / 50%);
+  box-shadow: 0 8px 22px -10px rgb(219 164 43 / 60%);
 }
 
 .rank--developer {
@@ -185,6 +185,38 @@
   background: linear-gradient(135deg, #8b5cf6, #5b5bd6);
   border-color: rgb(153 122 255 / 45%);
   box-shadow: 0 8px 22px -10px rgb(110 89 214 / 55%);
+}
+
+.rank--manager {
+  color: #fff0e3;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+  background: linear-gradient(135deg, #ff9f45, #ef6420);
+  border-color: rgb(255 169 105 / 45%);
+  box-shadow: 0 8px 22px -10px rgb(240 120 45 / 55%);
+}
+
+.rank--deputy_manager {
+  color: #e4fbff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+  background: linear-gradient(135deg, #27d3ee, #0e8fb0);
+  border-color: rgb(90 217 240 / 45%);
+  box-shadow: 0 8px 22px -10px rgb(30 180 214 / 55%);
+}
+
+.rank--admin {
+  color: #ffd9da;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+  background: linear-gradient(135deg, #ff5a5f, #c81e34);
+  border-color: rgb(255 106 112 / 45%);
+  box-shadow: 0 8px 22px -10px rgb(233 51 67 / 55%);
+}
+
+.rank--junior_admin {
+  color: #e6efff;
+  text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
+  background: linear-gradient(135deg, #63a6ff, #2f6fdb);
+  border-color: rgb(120 165 255 / 45%);
+  box-shadow: 0 8px 22px -10px rgb(65 120 235 / 55%);
 }
 
 .rank--player {
