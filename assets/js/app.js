@@ -31,6 +31,18 @@
       "hero.meta4": "есть Free-тариф",
       "hero.caption": "Тема меняется вместе с сайтом — попробуй переключатель вверху.",
 
+      "stats.v1": "70 МБ",
+      "stats.l1": "вес установщика, Java внутри",
+      "stats.v2": "6",
+      "stats.l2": "тем для лаунчера и самой игры",
+      "stats.v3": "1.19 — 1.21.11",
+      "stats.l3": "поддерживаемые версии Minecraft",
+      "stats.v4": "24 часа",
+      "stats.l4": "на возврат без вопросов",
+
+      "term.line2": "Распаковка… Java 21 внутри… Rounded UI…",
+      "term.line3": "Готово. Ярлык на рабочем столе. Запускай.",
+
       "feat.eyebrow": "Возможности",
       "feat.title": "Всё, что нужно, — в одном окне",
       "feat.lead": "Лаунчер, оформление и запуск игры собраны в один аккуратный клиент. Без модов, без бубна.",
@@ -161,6 +173,18 @@
       "hero.meta3": "Java bundled",
       "hero.meta4": "free plan included",
       "hero.caption": "The theme follows the site — try the switcher up top.",
+
+      "stats.v1": "~70 MB",
+      "stats.l1": "installer size, Java bundled",
+      "stats.v2": "6",
+      "stats.l2": "themes for launcher and in-game UI",
+      "stats.v3": "1.19 — 1.21.11",
+      "stats.l3": "supported Minecraft versions",
+      "stats.v4": "24 hours",
+      "stats.l4": "hassle-free refund window",
+
+      "term.line2": "Extracting\u2026 Java 21 bundled\u2026 Rounded UI\u2026",
+      "term.line3": "Done. The shortcut is on your desktop. Launch it.",
 
       "feat.eyebrow": "Features",
       "feat.title": "Everything you need in one window",
@@ -306,23 +330,23 @@
       btn.setAttribute("aria-pressed", String(btn.dataset.setTheme === theme));
     });
 
-    if (heroImg) {
-      const next = heroSrc(theme);
-      if (!heroImg.getAttribute("src").endsWith(next)) {
-        if (animate === false) {
-          heroImg.src = next;
-        } else {
-          heroImg.classList.add("is-swapping");
-          const img = new Image();
-          img.onload = () => {
-            heroImg.src = next;
-            requestAnimationFrame(() => heroImg.classList.remove("is-swapping"));
-          };
-          img.onerror = () => heroImg.classList.remove("is-swapping");
-          img.src = next;
-        }
-      }
-    }
+    const next = heroSrc(theme);
+
+    const swapImg = (img) => {
+      if (!img || img.getAttribute("src").endsWith(next)) return;
+      if (animate === false) { img.src = next; return; }
+      img.classList.add("is-swapping");
+      const img2 = new Image();
+      img2.onload = () => {
+        img.src = next;
+        requestAnimationFrame(() => img.classList.remove("is-swapping"));
+      };
+      img2.onerror = () => img.classList.remove("is-swapping");
+      img2.src = next;
+    };
+
+    swapImg(heroImg);
+    swapImg($("#themeShot"));
 
     const label = $(".hero__caption .kbd");
     if (label) label.textContent = I18N[lang]["t." + theme];
@@ -711,6 +735,94 @@
   window.addEventListener("storage", (e) => {
     if (e.key === "uc-token" || e.key === "uc-nick") renderAccount();
   });
+
+  /* ============ интерактив: спотлайт, наклон hero, прогресс ============ */
+
+  const finePointer = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+
+  if (finePointer && !reduceMotion) {
+    /* живое свечение за курсором */
+    const bg = $(".bg");
+    if (bg) {
+      const light = document.createElement("div");
+      light.className = "cursor-light";
+      bg.appendChild(light);
+      let lightPending = false;
+      let warnLight = false;
+      document.addEventListener("pointermove", (e) => {
+        if (lightPending) return;
+        lightPending = true;
+        requestAnimationFrame(() => {
+          lightPending = false;
+          light.style.transform = "translate(" + e.clientX.toFixed(0) + "px," + e.clientY.toFixed(0) + "px)";
+          if (!warnLight) { warnLight = true; light.classList.add("is-on"); }
+        });
+      }, { passive: true });
+      document.addEventListener("pointerdown", () => { light.classList.add("is-on"); }, { passive: true });
+    }
+    /* световое пятно на карточках и тарифах следует за курсором */
+    const spotlightTargets = $$(".cards .card, .plans .plan");
+    let spotPending = false;
+
+    document.addEventListener("pointermove", (e) => {
+      if (spotPending) return;
+      spotPending = true;
+      requestAnimationFrame(() => {
+        spotPending = false;
+        const el = e.target instanceof Element && e.target.closest(".card, .plan");
+        if (!el) return;
+        const rect = el.getBoundingClientRect();
+        el.style.setProperty("--mx", ((e.clientX - rect.left) / rect.width * 100).toFixed(1) + "%");
+        el.style.setProperty("--my", ((e.clientY - rect.top) / rect.height * 100).toFixed(1) + "%");
+      });
+    }, { passive: true });
+
+    /* hero-скриншот чуть наклоняется за курсором */
+    const visual = $(".hero__visual");
+    const shotEl = $(".shot", visual || document);
+    if (visual && shotEl) {
+      visual.addEventListener("pointermove", (e) => {
+        const rect = visual.getBoundingClientRect();
+        const rx = (0.5 - (e.clientY - rect.top) / rect.height) * 5;
+        const ry = ((e.clientX - rect.left) / rect.width - 0.5) * 7;
+        shotEl.style.transform = "rotateX(" + rx.toFixed(2) + "deg) rotateY(" + ry.toFixed(2) + "deg)";
+      });
+      visual.addEventListener("pointerleave", () => {
+        shotEl.style.transform = "";
+      });
+    }
+  }
+
+  /* вспышка при смене цветовой темы */
+  if (!reduceMotion) {
+    let flashSkip = true;
+    new MutationObserver(() => {
+      if (flashSkip) { flashSkip = false; return; }
+      document.body.classList.remove("is-theme-flash");
+      void document.body.offsetWidth;
+      document.body.classList.add("is-theme-flash");
+    }).observe(root, { attributes: true, attributeFilter: ["data-theme"] });
+  }
+
+  /* полоса прогресса чтения сверху */
+  const progressBar = $("#progress");
+  if (progressBar) {
+    let progressPending = false;
+    const syncProgress = () => {
+      progressPending = false;
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const ratio = max > 0 ? Math.min(window.scrollY / max, 1) : 0;
+      progressBar.style.transform = "scaleX(" + ratio.toFixed(4) + ")";
+      progressBar.classList.toggle("is-on", ratio > 0.005);
+    };
+    window.addEventListener("scroll", () => {
+      if (progressPending) return;
+      progressPending = true;
+      requestAnimationFrame(syncProgress);
+    }, { passive: true });
+    window.addEventListener("resize", syncProgress, { passive: true });
+    syncProgress();
+  }
 
   /* ============ boot ============ */
 

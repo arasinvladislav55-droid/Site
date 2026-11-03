@@ -528,6 +528,22 @@
     els.search.classList.remove("is-error");
   });
   els.exitBtn.addEventListener("click", exit);
+
+  /* световое пятно на строках пользователей следует за курсором */
+  let spotPending = false;
+  document.addEventListener("pointermove", (e) => {
+    if (spotPending) return;
+    spotPending = true;
+    requestAnimationFrame(() => {
+      spotPending = false;
+      const el = e.target instanceof Element && e.target.closest(".adm-user");
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty("--mx", ((e.clientX - rect.left) / rect.width * 100).toFixed(1) + "%");
+      el.style.setProperty("--my", ((e.clientY - rect.top) / rect.height * 100).toFixed(1) + "%");
+    });
+  }, { passive: true });
+
   els.langBtn.addEventListener("click", () => {
     applyLang(lang === "ru" ? "en" : "ru");
     if (!els.panelCard.hidden) load(query, true);
