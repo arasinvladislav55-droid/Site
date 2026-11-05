@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ru" data-theme="emerald">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Форум — Universal Client</title>
+<meta name="description" content="Форум Universal Client: задавай вопросы игрокам и команде разработки, выбирай тег и получай ответ.">
+<meta name="theme-color" content="#0b100d">
+<meta property="og:type" content="website">
+<meta property="og:title" content="Форум — Universal Client">
+<meta property="og:description" content="Вопросы игроков и разработчиков в одном чате.">
+<meta property="og:image" content="assets/img/home-emerald.png">
+<link rel="icon" href="assets/img/icon.png">
+<link rel="apple-touch-icon" href="assets/img/icon.png">
+<link rel="preload" href="assets/fonts/manrope-cyrillic.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400..700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css?v=7">
+<link rel="stylesheet" href="assets/css/forum.css?v=7">
+<script>document.documentElement.classList.add("js");</script>
+</head>
+<body>
+
+<div class="bg" aria-hidden="true">
+  <div class="bg-grid"></div>
+  <div class="bg-orb bg-orb--1"></div>
+  <div class="bg-orb bg-orb--2"></div>
+  <div class="bg-orb bg-orb--3"></div>
+  <div class="bg-noise"></div>
+</div>
+
+<header class="header" id="header">
+  <div class="wrap header__inner">
+    <a class="brand" href="index.html" aria-label="Universal Client">
+      <img class="brand__icon" src="assets/img/icon.png" alt="" width="36" height="36">
+      <span class="brand__text">Universal<span>Client</span></span>
+      <span class="brand__ver">v7.0.0</span>
+    </a>
+
+    <nav class="nav" id="nav" aria-label="Основная навигация">
+      <a href="index.html#features" data-i18n="nav.features">Возможности</a>
+      <a href="index.html#gallery" data-i18n="nav.gallery">Скриншоты</a>
+      <a href="index.html#themes" data-i18n="nav.themes">Темы</a>
+      <a href="index.html#pricing" data-i18n="nav.pricing">Тарифы</a>
+      <a href="index.html#install" data-i18n="nav.install">Установка</a>
+      <a href="forum.html#forum" data-i18n="nav.forum">Форум</a>
+      <a class="nav__account" href="account.html" data-account>
+        <span class="acc-avatar" data-account-avatar aria-hidden="true"></span>
+        <span class="acc-label" data-account-label data-i18n="btn.account">Войти</span>
+      </a>
+    </nav>
+
+    <div class="header__actions">
+      <div class="swatches" id="swatches" role="group" aria-label="Цветовая тема">
+        <button class="swatch" data-set-theme="amber"   data-t="amber"   aria-label="Янтарь" title="Янтарь"><span></span></button>
+        <button class="swatch" data-set-theme="purple"  data-t="purple"  aria-label="Фиолетовый" title="Фиолетовый"><span></span></button>
+        <button class="swatch" data-set-theme="ocean"   data-t="ocean"   aria-label="Океан" title="Океан"><span></span></button>
+        <button class="swatch" data-set-theme="rose"    data-t="rose"    aria-label="Роза" title="Роза"><span></span></button>
+        <button class="swatch" data-set-theme="emerald" data-t="emerald" aria-label="Изумруд" title="Изумруд"><span></span></button>
+        <button class="swatch" data-set-theme="sunset"  data-t="sunset"  aria-label="Закат" title="Закат"><span></span></button>
+      </div>
+      <button class="lang" id="langBtn" type="button" aria-label="Switch language">EN</button>
+      <a class="btn btn--ghost btn--sm header__account" href="account.html" data-account>
+        <span class="acc-avatar" data-account-avatar aria-hidden="true"></span>
+        <span class="acc-label" data-account-label data-i18n="btn.account">Войти</span>
+      </a>
+      <button class="burger" id="burger" type="button" aria-label="Меню" aria-expanded="false" aria-controls="nav">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<main id="top">
+
+  <section class="section" id="forum">
+    <div class="wrap">
+
+      <header class="shead reveal">
+        <span class="shead__num" aria-hidden="true">07</span>
+        <div class="shead__main">
+          <span class="eyebrow" data-i18n="forum.eyebrow">Форум</span>
+          <h2 class="section__title" data-i18n="forum.title">Вопросы игроков</h2>
+          <p class="section__lead" data-i18n="forum.lead">Задай вопрос игрокам и команде разработки. Тема создаётся автоматически со статусом «На рассмотрении» — после одобрения она открывается для ответов.</p>
+        </div>
+      </header>
+
+      <div class="forum__toolbar reveal">
+        <div class="forum__chips" id="tagChips" role="group" aria-label="forum.tagsLabel">
+          <button class="forum__chip is-active" type="button" data-tag="all" data-i18n="forum.tag.all">Все теги</button>
+          <button class="forum__chip" type="button" data-tag="tech" data-i18n="forum.tag.tech">Техническая часть</button>
+          <button class="forum__chip" type="button" data-tag="server" data-i18n="forum.tag.server">Вопрос по серверу</button>
+          <button class="forum__chip" type="button" data-tag="idea" data-i18n="forum.tag.idea">Идея / Баг</button>
+          <button class="forum__chip" type="button" data-tag="chat" data-i18n="forum.tag.chat">Чат с высшим руководством</button>
+        </div>
+        <button class="btn btn--primary" id="newTopicBtn" type="button" data-i18n="forum.new">Создать тему</button>
+      </div>
+
+      <p class="forum__hint reveal" data-i18n="forum.hint">Новые темы сначала уходят на рассмотрение модератора — после одобрения они появляются в общем списке и открываются для ответов.</p>
+
+      <div class="forum__list" id="topicList" aria-live="polite"></div>
+
+      <div class="forum__pending" id="pendingBox" hidden>
+        <h3 class="forum__pending-title" data-i18n="forum.pendingTitle">Ожидают рассмотрения</h3>
+        <div class="forum__list" id="pendingList"></div>
+      </div>
+
+      <section class="forum__panel" id="topicForm" hidden>
+        <h3 class="forum__panel-title" data-i18n="forum.newTitle">Новая тема</h3>
+        <form class="forum__form" id="topicFormEl" novalidate>
+          <label class="forum__field">
+            <span data-i18n="forum.f.title">Заголовок</span>
+            <input id="fTitle" type="text" maxlength="140" placeholder="Например: Не открывается ресурспак после обновления" required>
+          </label>
+
+          <div class="forum__field">
+            <span data-i18n="forum.f.tag">Тег</span>
+            <div class="forum__tags" id="fTagPicker" role="radiogroup" aria-label="forum.f.tag">
+              <button type="button" class="forum__tagpicker__opt is-active" data-tag="tech" role="radio" aria-checked="true">
+                <span class="forum__tagpicker__dot" data-tag-dot="tech"></span>
+                <span data-i18n="forum.tag.tech">Техническая часть</span>
+              </button>
+              <button type="button" class="forum__tagpicker__opt" data-tag="server" role="radio" aria-checked="false">
+                <span class="forum__tagpicker__dot" data-tag-dot="server"></span>
+                <span data-i18n="forum.tag.server">Вопрос по серверу</span>
+              </button>
+              <button type="button" class="forum__tagpicker__opt" data-tag="idea" role="radio" aria-checked="false">
+                <span class="forum__tagpicker__dot" data-tag-dot="idea"></span>
+                <span data-i18n="forum.tag.idea">Идея / Баг</span>
+              </button>
+              <button type="button" class="forum__tagpicker__opt" data-tag="chat" role="radio" aria-checked="false">
+                <span class="forum__tagpicker__dot" data-tag-dot="chat"></span>
+                <span data-i18n="forum.tag.chat">Чат с высшим руководством</span>
+              </button>
+            </div>
+          </div>
+
+          <label class="forum__field">
+            <span data-i18n="forum.f.body">Ваш вопрос</span>
+            <textarea id="fBody" rows="6" maxlength="4000" placeholder="Опиши проблему или идею: что происходит, что ожидал, как это воспроизвести…" required></textarea>
+          </label>
+
+          <p class="forum__msg" id="fMsg" role="status" aria-live="polite"></p>
+
+          <div class="forum__form-actions">
+            <button class="btn btn--primary" type="submit" data-i18n="forum.send">Отправить</button>
+            <button class="btn btn--ghost" type="button" id="fCancel" data-i18n="forum.cancel">Отмена</button>
+          </div>
+        </form>
+      </section>
+
+      <section class="forum__panel forum__thread" id="threadView" hidden>
+        <button class="forum__back" id="threadBack" type="button">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+          <span data-i18n="forum.back">К списку</span>
+        </button>
+
+        <div class="forum__thread-head">
+          <div class="forum__badges">
+            <span class="forum__tag" id="threadTag"></span>
+            <span class="forum__status" id="threadStatus"></span>
+          </div>
+          <h3 class="forum__thread-title" id="threadTitle"></h3>
+          <p class="forum__thread-meta" id="threadMeta"></p>
+          <div class="forum__thread-actions" id="threadActions"></div>
+          <div class="forum__thread-tagctl">
+            <label class="forum__thread-tagctl-label" for="threadTagSel" data-i18n="forum.f.tag">Тег</label>
+            <div class="forum__thread-tagctl-row">
+              <select id="threadTagSel"></select>
+              <button class="btn btn--ghost btn--sm" id="threadTagApply" type="button" data-i18n="forum.tagApply">Применить</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="forum__status-banner" id="threadBanner" role="status"></div>
+
+        <div class="forum__messages" id="threadMessages"></div>
+
+        <form class="forum__reply" id="replyForm" hidden>
+          <label class="forum__field">
+            <span data-i18n="forum.f.reply">Ваш ответ</span>
+            <textarea id="replyBody" rows="4" maxlength="4000" placeholder="Опиши решение, детали или дополнительный контекст…" required></textarea>
+          </label>
+          <div class="forum__form-actions">
+            <button class="btn btn--primary" type="submit" data-i18n="forum.send">Ответить</button>
+            <button class="btn btn--ghost" type="button" id="replyCancel" data-i18n="forum.cancel">Отмена</button>
+          </div>
+        </form>
+
+        <p class="forum__thread-note" id="threadNote"></p>
+      </section>
+
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap footer__inner">
+    <div class="footer__brand">
+      <img src="assets/img/icon.png" alt="" width="40" height="40">
+      <div>
+        <strong>Universal Client</strong>
+        <span data-i18n="footer.tagline">Лаунчер Minecraft с характером</span>
+      </div>
+    </div>
+
+    <nav class="footer__nav" aria-label="Ссылки">
+      <a href="index.html#pricing" data-i18n="nav.pricing">Тарифы</a>
+      <a href="index.html#install" data-i18n="nav.install">Установка</a>
+      <a href="forum.html" data-i18n="nav.forum">Форум</a>
+      <a href="index.html#faq" data-i18n="nav.faq">FAQ</a>
+    </nav>
+
+    <p class="footer__legal" data-i18n="footer.legal">Не связан с Mojang Studios и Microsoft. Minecraft — торговая марка Mojang Studios.</p>
+    <p class="footer__copy">© 2026 Universal Client · v7.0.0</p>
+  </div>
+</footer>
+
+<script src="assets/js/app.js?v=8"></script>
+<script src="assets/js/forum.js?v=7"></script>
+</body>
+</html>

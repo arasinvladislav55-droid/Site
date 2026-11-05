@@ -43,6 +43,33 @@ const MAX_ITER = 100000;
 const WINDOW_MS = 5 * 60 * 1000;
 const RATE_LIMIT = 12;
 
+/* ───────────── форум: теги и статусы ───────────── */
+
+const FORUM_TAGS = ["tech", "server", "idea", "chat"];
+const FORUM_STATUSES = ["pending", "approved", "rejected"];
+const FORUM_TAG_LABELS = {
+  ru: {
+    tech: "Техническая часть",
+    server: "Вопрос по серверу",
+    idea: "Идея / Баг",
+    chat: "Чат с высшим руководством",
+  },
+  en: {
+    tech: "Technical",
+    server: "Server",
+    idea: "Idea / Bug",
+    chat: "Management",
+  },
+};
+const FORUM_STATUS_LABELS = {
+  ru: { pending: "На рассмотрении", approved: "Одобрено", rejected: "Отклонено" },
+  en: { pending: "Pending", approved: "Approved", rejected: "Rejected" },
+};
+const FORUM_TITLE_MIN = 4;
+const FORUM_TITLE_MAX = 140;
+const FORUM_BODY_MIN = 10;
+const FORUM_BODY_MAX = 4000;
+
 /* ───────────── утилиты ───────────── */
 
 const enc = new TextEncoder();
@@ -482,6 +509,187 @@ async function webhook({ request, env, r }) {
   return r.json(200, { ok: true, user });
 }
 
+/* ───────────── форум: просмотр темы со сообщениями ───────────── */
+
+function forumTopicView(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    authorId: row.author_id ?? null,
+    authorNick: row.author_nick,
+    authorRank: row.author_rank || "player",
+    title: row.title,
+    tag: row.tag,
+    body: row.body,
+    status: row.status,
+    reason: row.reason || null,
+    views: row.views ?? 0,
+    replies: row.replies ?? 0,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at,
+  };
+}
+
+function forumMessageView(row) {
+  if (!row) return null;
+  return {
+    id: row.id,
+    topicId: row.topic_id,
+    authorId: row.author_id ?? null,
+    authorNick: row.author_nick,
+    authorRank: row.author_rank || "player",
+    body: row.body,
+    createdAt: row.created_at,
+  };
+}
+
+async function forumTopic({ request, env, r, id }) {
+  const db = env.DB;
+  const row = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(id).first();
+  if (!row) return r.fail(404, "not_found", "Тема не найдена.");
+  await db.prepare("UPDATE forum_topics SET views = views + 1 WHERE id = ?").bind(id).run();
+  const { results } = await db
+    .prepare("SELECT * FROM forum_messages WHERE topic_id = ? ORDER BY id ASC LIMIT 200")
+    .bind(id)
+    .all();
+  return r.json(200, { topic: forumTopicView(row), messages: (results || []).map(forumMessageView) });
+}
+
+async function forumReply({ request, env, ip, r, id }) {
+  const db = env.DB;
+  if (await tooMany(db, ip)) return r.fail(429, "rate_limited", "Слишком много попыток. Подождите пару минут.");
+
+  const user = await currentUser(db, request);
+  if (!user) return r.fail(401, "unauthorized", "Требуется вход.");
+
+  const topic = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(id).first();
+  if (!topic) return r.fail(404, "not_found", "Тема не найдена.");
+
+  if (topic.status === "pending")
+    return r.fail(400, "topic_pending", "Тема на рассмотрении. Ответы принимаются после одобрения.");
+  if (topic.status === "rejected")
+    return r.fail(400, "topic_rejected", "Тема отклонена. Вернуться к вопросу можно после новой темы или повторного рассмотрения.");
+
+  const body = await readBody(request);
+  const text = String(body.body || "").trim();
+  if (text.length < 2 || text.length > FORUM_BODY_MAX)
+    return r.fail(400, "bad_body", "Ответ: от 2 до 4000 символов.");
+
+  const nowIso = now();
+  await db
+    .prepare("INSERT INTO forum_messages (topic_id, author_id, author_nick, author_rank, body, created_at) VALUES (?,?,?,?,?,?)")
+    .bind(id, user.id, user.nickname, user.rank, text, nowIso)
+    .run();
+
+  const replies = (topic.replies || 0) + 1;
+  await db.prepare("UPDATE forum_topics SET replies = ?, updated_at = ? WHERE id = ?").bind(replies, nowIso, id).run();
+
+  const fresh = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(id).first();
+  const { results } = await db
+    .prepare("SELECT * FROM forum_messages WHERE topic_id = ? ORDER BY id ASC LIMIT 200")
+    .bind(id)
+    .all();
+  return r.json(200, { topic: forumTopicView(fresh), messages: (results || []).map(forumMessageView) });
+}
+
+async function forumStatus({ request, env, r, id }) {
+  const db = env.DB;
+  if (!(await requireAdmin(db, request, env)))
+    return r.fail(403, "forbidden", "Доступ только для администраторов.");
+
+  const body = await readBody(request);
+  const status = String(body.status || "").trim();
+  if (!FORUM_STATUSES.includes(status)) return r.fail(400, "bad_status", "Неверный статус: " + FORUM_STATUSES.join(", ") + ".");
+
+  const reason = status === "rejected" ? String(body.reason || "").trim().slice(0, 500) : null;
+  if (status === "rejected" && reason.length < 3)
+    return r.fail(400, "bad_reason", "При отклонении нужно указать причину.");
+
+  const nowIso = now();
+  await db
+    .prepare("UPDATE forum_topics SET status = ?, reason = ?, updated_at = ? WHERE id = ?")
+    .bind(status, status === "rejected" ? reason : null, nowIso, id)
+    .run();
+  const topic = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(id).first();
+  return r.json(200, { topic: forumTopicView(topic) });
+}
+
+async function forumTag({ request, env, r, id }) {
+  const db = env.DB;
+  if (!(await requireAdmin(db, request, env)))
+    return r.fail(403, "forbidden", "Доступ только для администраторов.");
+
+  const body = await readBody(request);
+  const tag = String(body.tag || "").trim();
+  if (!FORUM_TAGS.includes(tag)) return r.fail(400, "bad_tag", "Неверный тег.");
+
+  const nowIso = now();
+  await db.prepare("UPDATE forum_topics SET tag = ?, updated_at = ? WHERE id = ?").bind(tag, nowIso, id).run();
+  const topic = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(id).first();
+  return r.json(200, { topic: forumTopicView(topic) });
+}
+
+/* ───────────── форум: список тем ───────────── */
+
+async function forumTopics({ request, env, r }) {
+  const { searchParams } = new URL(request.url);
+  const tag = String(searchParams.get("tag") || "").trim();
+  const status = String(searchParams.get("status") || "approved").trim();
+  const q = String(searchParams.get("q") || "").trim().slice(0, 80);
+
+  if (!FORUM_STATUSES.includes(status)) return r.fail(400, "bad_status", "Неверный статус.");
+  if (tag && !FORUM_TAGS.includes(tag)) return r.fail(400, "bad_tag", "Неверный тег.");
+
+  const where = ["status = ?"];
+  const params = [status];
+  if (tag) {
+    where.push("tag = ?");
+    params.push(tag);
+  }
+  if (q) {
+    where.push("(title LIKE ? OR body LIKE ?)");
+    params.push("%" + q + "%", "%" + q + "%");
+  }
+
+  const { results } = await env.DB
+    .prepare("SELECT * FROM forum_topics WHERE " + where.join(" AND ") + " ORDER BY updated_at DESC LIMIT 50")
+    .bind(...params)
+    .all();
+
+  const topics = (results || []).map(forumTopicView);
+  return r.json(200, { topics });
+}
+
+/* ───────────── форум: создание темы ───────────── */
+
+async function forumCreate({ request, env, ip, r }) {
+  const db = env.DB;
+  if (await tooMany(db, ip)) return r.fail(429, "rate_limited", "Слишком много попыток. Подождите пару минут.");
+
+  const user = await currentUser(db, request);
+  if (!user) return r.fail(401, "unauthorized", "Требуется вход.");
+
+  const body = await readBody(request);
+  const title = String(body.title || "").trim().slice(0, FORUM_TITLE_MAX);
+  const tag = String(body.tag || "").trim();
+  const text = String(body.body || "").trim();
+
+  if (title.length < FORUM_TITLE_MIN) return r.fail(400, "bad_title", "Заголовок: минимум " + FORUM_TITLE_MIN + " символа.");
+  if (!FORUM_TAGS.includes(tag)) return r.fail(400, "bad_tag", "Выбери тег: " + FORUM_TAGS.join(", ") + ".");
+  if (text.length < FORUM_BODY_MIN || text.length > FORUM_BODY_MAX)
+    return r.fail(400, "bad_body", "Вопрос: от " + FORUM_BODY_MIN + " до " + FORUM_BODY_MAX + " символов.");
+
+  const nowIso = now();
+  const res = await db
+    .prepare(
+      "INSERT INTO forum_topics (author_id, author_nick, author_rank, title, tag, body, status, views, replies, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
+    )
+    .bind(user.id, user.nickname, user.rank, title, tag, text, "pending", 0, 0, nowIso, nowIso)
+    .run();
+  const topic = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(res.meta.last_row_id).first();
+  return r.json(201, { topic: forumTopicView(topic) });
+}
+
 /* ───────────── роутер ───────────── */
 
 export async function onRequest({ request, env }) {
@@ -495,6 +703,7 @@ export async function onRequest({ request, env }) {
   const ip = request.headers.get("cf-connecting-ip") || "unknown";
   const ctx = { request, env, ip, r };
   const m = request.method;
+  const parts = pathname.split("/").filter(Boolean); // ["api","forum","topics","3","status"]
 
   try {
     if (pathname === "/api/health") return r.json(200, { ok: true, time: now() });
@@ -511,6 +720,18 @@ export async function onRequest({ request, env }) {
     if (pathname === "/api/admin/rank" && m === "POST") return await adminSetRank(ctx);
     if (pathname === "/api/admin/plan" && m === "POST") return await adminSetPlan(ctx);
     if (pathname === "/api/admin/password" && m === "POST") return await adminSetPassword(ctx);
+
+    /* ── форум ── */
+    if (parts[0] === "api" && parts[1] === "forum" && parts[2] === "topics") {
+      const forumIdOk = parts.length >= 4 && Number.isInteger(Number(parts[3]));
+      if (m === "GET" && parts.length === 3) return await forumTopics(ctx);
+      if (m === "POST" && parts.length === 3) return await forumCreate(ctx);
+      if (m === "GET" && parts.length === 4 && forumIdOk) return await forumTopic(ctx, Number(parts[3]));
+      if (m === "POST" && parts.length === 4 && forumIdOk) return await forumReply(ctx, Number(parts[3]));
+      if (m === "POST" && parts.length === 5 && parts[4] === "status" && forumIdOk) return await forumStatus(ctx, Number(parts[3]));
+      if (m === "POST" && parts.length === 5 && parts[4] === "tag" && forumIdOk) return await forumTag(ctx, Number(parts[3]));
+    }
+
     return r.fail(404, "not_found", "Нет такого метода.");
   } catch (e) {
     if (e.message === "bad_json") return r.fail(400, "bad_json", "Некорректный JSON.");

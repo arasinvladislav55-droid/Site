@@ -12,6 +12,7 @@
       "nav.pricing": "Тарифы",
       "nav.install": "Установка",
       "nav.faq": "FAQ",
+      "nav.forum": "Форум",
 
       "btn.downloadClient": "Скачать лаунчер",
       "btn.downloadExe": "Скачать UniversalClient-7.0.0.exe",
@@ -157,6 +158,7 @@
       "nav.pricing": "Pricing",
       "nav.install": "Install",
       "nav.faq": "FAQ",
+      "nav.forum": "Forum",
 
       "btn.downloadClient": "Download launcher",
       "btn.downloadExe": "Download UniversalClient-7.0.0.exe",
