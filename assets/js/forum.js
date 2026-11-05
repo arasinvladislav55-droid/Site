@@ -32,6 +32,7 @@
       "forum.hint": "Новые темы сначала уходят на рассмотрение модератора — после одобрения они появляются в общем списке и открываются для ответов.",
       "forum.empty": "Тем пока нет. Будь первым, кто задал вопрос!",
       "forum.pendingTitle": "Ожидают рассмотрения",
+      "forum.rejectedTitle": "Отклонённые темы",
       "forum.tag.all": "Все теги",
       "forum.tag.tech": "Техническая часть",
       "forum.tag.server": "Вопрос по серверу",
@@ -61,7 +62,7 @@
       "forum.err.not_found": "Тема не найдена.",
       "forum.err.rate_limited": "Слишком много попыток. Подождите пару минут.",
       "forum.err.unauthorized": "Требуется вход.",
-      "forum.err.topic_pending": "Тема на рассмотрении. Ответы принимаются после одобрения.",
+      "forum.err.topic_pending": "Тема на рассмотрении.",
       "forum.err.topic_rejected": "Тема отклонена. После новой темы или повторного рассмотрения.",
       "forum.err.network": "Нет связи с сервером. Попробуйте ещё раз.",
       "forum.err.unknown": "Что-то пошло не так. Попробуйте ещё раз.",
@@ -96,6 +97,7 @@
       "forum.hint": "New topics go to moderation first — then they appear in the list and open for replies.",
       "forum.empty": "No topics yet. Be the first to ask!",
       "forum.pendingTitle": "Pending review",
+      "forum.rejectedTitle": "Rejected topics",
       "forum.tag.all": "All tags",
       "forum.tag.tech": "Technical",
       "forum.tag.server": "Server",
@@ -183,6 +185,8 @@
     topicList: $("#topicList"),
     pendingBox: $("#pendingBox"),
     pendingList: $("#pendingList"),
+    rejectedBox: $("#rejectedBox"),
+    rejectedList: $("#rejectedList"),
     newTopicBtn: $("#newTopicBtn"),
     topicForm: $("#topicForm"),
     topicFormEl: $("#topicFormEl"),
@@ -222,6 +226,7 @@
     fTag: "tech",
     topics: [],
     pending: [],
+    rejected: [],
     user: null,
     canModerate: false,
     signedIn: false,
@@ -395,14 +400,18 @@
     }
 
     state.pending = [];
+    state.rejected = [];
     if (state.canModerate) {
-      const qsPending = "?status=pending" + (state.tag && state.tag !== "all" ? "&tag=" + encodeURIComponent(state.tag) : "");
-      try {
-        const data = await api("/api/forum/topics" + qsPending);
-        state.pending = data.topics || [];
-      } catch (err) {
-        state.pending = [];
-      }
+      const tagQs = state.tag && state.tag !== "all" ? "&tag=" + encodeURIComponent(state.tag) : "";
+      const [pend, rej] = await Promise.all(
+        ["pending", "rejected"].map((st) =>
+          api("/api/forum/topics?status=" + st + tagQs, { token: store.get("uc-token", "") })
+            .then((d) => d.topics || [])
+            .catch(() => [])
+        )
+      );
+      state.pending = pend;
+      state.rejected = rej;
     }
     renderForum();
   }
@@ -515,6 +524,16 @@
         pendingBox.hidden = true;
       }
     }
+
+    if (els.rejectedBox && els.rejectedList) {
+      if (state.canModerate && state.rejected.length) {
+        els.rejectedBox.hidden = false;
+        els.rejectedList.innerHTML = "";
+        state.rejected.forEach((topic) => els.rejectedList.append(topicCard(topic)));
+      } else {
+        els.rejectedBox.hidden = true;
+      }
+    }
   }
 
   /* =========================================================
@@ -523,7 +542,7 @@
   function addModeration(topic, parent) {
     if (!parent) return;
     parent.innerHTML = "";
-    if (!state.canModerate || topic.status !== "pending") return;
+    if (!state.canModerate || topic.status === "approved") return;
 
     const row = document.createElement("div");
     row.className = "forum__mod";
@@ -546,7 +565,8 @@
       addModeration(topic, parent);
     });
 
-    row.append(approve, reject);
+    row.append(approve);
+    if (topic.status === "pending") row.append(reject);
 
     if (state.rejectingFor === topic.id) {
       const reason = document.createElement("input");
@@ -695,14 +715,21 @@
 
     if (els.threadMessages) {
       els.threadMessages.innerHTML = "";
-      (messages || []).forEach((msg, i) => {
-        els.threadMessages.append(messageNode(msg, i === 0));
+      els.threadMessages.append(
+        messageNode(
+          { authorNick: topic.authorNick, authorRank: topic.authorRank, body: topic.body, createdAt: topic.createdAt },
+          true
+        )
+      );
+      (messages || []).forEach((msg) => {
+        els.threadMessages.append(messageNode(msg, false));
       });
     }
 
     if (els.threadActions) addModeration(topic, els.threadActions);
 
     if (els.threadTagCtl) {
+      els.threadTagCtl.hidden = !state.canModerate;
       const sel = els.threadTagSel;
       if (sel) {
         sel.innerHTML = "";
@@ -717,7 +744,7 @@
     }
 
     if (els.replyForm) {
-      const approved = topic.status === "approved" && state.signedIn;
+      const approved = topic.status !== "rejected" && state.signedIn;
       els.replyForm.hidden = !approved;
     }
 

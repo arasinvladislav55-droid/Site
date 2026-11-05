@@ -566,8 +566,6 @@ async function forumReply({ request, env, ip, r }, id) {
   const topic = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(id).first();
   if (!topic) return r.fail(404, "not_found", "Тема не найдена.");
 
-  if (topic.status === "pending")
-    return r.fail(400, "topic_pending", "Тема на рассмотрении. Ответы принимаются после одобрения.");
   if (topic.status === "rejected")
     return r.fail(400, "topic_rejected", "Тема отклонена. Вернуться к вопросу можно после новой темы или повторного рассмотрения.");
 
@@ -640,6 +638,8 @@ async function forumTopics({ request, env, r }) {
 
   if (!FORUM_STATUSES.includes(status)) return r.fail(400, "bad_status", "Неверный статус.");
   if (tag && !FORUM_TAGS.includes(tag)) return r.fail(400, "bad_tag", "Неверный тег.");
+  if (status !== "approved" && !(await requireAdmin(env.DB, request, env)))
+    return r.fail(403, "forbidden", "Доступ только для администраторов.");
 
   const where = ["status = ?"];
   const params = [status];

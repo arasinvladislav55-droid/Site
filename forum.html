@@ -107,6 +107,11 @@
         <div class="forum__list" id="pendingList"></div>
       </div>
 
+      <div class="forum__pending" id="rejectedBox" hidden>
+        <h3 class="forum__pending-title" data-i18n="forum.rejectedTitle">Отклонённые темы</h3>
+        <div class="forum__list" id="rejectedList"></div>
+      </div>
+
       <section class="forum__panel" id="topicForm" hidden>
         <h3 class="forum__panel-title" data-i18n="forum.newTitle">Новая тема</h3>
         <form class="forum__form" id="topicFormEl" novalidate>
@@ -165,7 +170,7 @@
           <h3 class="forum__thread-title" id="threadTitle"></h3>
           <p class="forum__thread-meta" id="threadMeta"></p>
           <div class="forum__thread-actions" id="threadActions"></div>
-          <div class="forum__thread-tagctl">
+          <div class="forum__thread-tagctl" id="threadTagCtl" hidden>
             <label class="forum__thread-tagctl-label" for="threadTagSel" data-i18n="forum.f.tag">Тег</label>
             <div class="forum__thread-tagctl-row">
               <select id="threadTagSel"></select>
