@@ -35,6 +35,7 @@ const RANK_LEVEL = {
   owner: 7,
 };
 const rankLevel = (r) => RANK_LEVEL[r] || 0;
+const rankOf = (u) => (u && RANKS.includes(u.rank) ? u.rank : "player");
 const FREE_FEATURES = ["versions", "servers", "profile", "one-theme"];
 const PAID_FEATURES = ["themes", "rounded-ui", "rpc"];
 const SESSION_DAYS = 30;
@@ -543,7 +544,7 @@ function forumMessageView(row) {
   };
 }
 
-async function forumTopic({ request, env, r, id }) {
+async function forumTopic({ request, env, r }, id) {
   const db = env.DB;
   const row = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(id).first();
   if (!row) return r.fail(404, "not_found", "Тема не найдена.");
@@ -555,7 +556,7 @@ async function forumTopic({ request, env, r, id }) {
   return r.json(200, { topic: forumTopicView(row), messages: (results || []).map(forumMessageView) });
 }
 
-async function forumReply({ request, env, ip, r, id }) {
+async function forumReply({ request, env, ip, r }, id) {
   const db = env.DB;
   if (await tooMany(db, ip)) return r.fail(429, "rate_limited", "Слишком много попыток. Подождите пару минут.");
 
@@ -578,7 +579,7 @@ async function forumReply({ request, env, ip, r, id }) {
   const nowIso = now();
   await db
     .prepare("INSERT INTO forum_messages (topic_id, author_id, author_nick, author_rank, body, created_at) VALUES (?,?,?,?,?,?)")
-    .bind(id, user.id, user.nickname, user.rank, text, nowIso)
+    .bind(id, user.id, user.nickname, rankOf(user), text, nowIso)
     .run();
 
   const replies = (topic.replies || 0) + 1;
@@ -592,7 +593,7 @@ async function forumReply({ request, env, ip, r, id }) {
   return r.json(200, { topic: forumTopicView(fresh), messages: (results || []).map(forumMessageView) });
 }
 
-async function forumStatus({ request, env, r, id }) {
+async function forumStatus({ request, env, r }, id) {
   const db = env.DB;
   if (!(await requireAdmin(db, request, env)))
     return r.fail(403, "forbidden", "Доступ только для администраторов.");
@@ -614,7 +615,7 @@ async function forumStatus({ request, env, r, id }) {
   return r.json(200, { topic: forumTopicView(topic) });
 }
 
-async function forumTag({ request, env, r, id }) {
+async function forumTag({ request, env, r }, id) {
   const db = env.DB;
   if (!(await requireAdmin(db, request, env)))
     return r.fail(403, "forbidden", "Доступ только для администраторов.");
@@ -684,10 +685,28 @@ async function forumCreate({ request, env, ip, r }) {
     .prepare(
       "INSERT INTO forum_topics (author_id, author_nick, author_rank, title, tag, body, status, views, replies, created_at, updated_at) VALUES (?,?,?,?,?,?,?,?,?,?,?)"
     )
-    .bind(user.id, user.nickname, user.rank, title, tag, text, "pending", 0, 0, nowIso, nowIso)
+    .bind(user.id, user.nickname, rankOf(user), title, tag, text, "pending", 0, 0, nowIso, nowIso)
     .run();
   const topic = await db.prepare("SELECT * FROM forum_topics WHERE id = ?").bind(res.meta.last_row_id).first();
   return r.json(201, { topic: forumTopicView(topic) });
+}
+
+/* ───────────── автосоздание таблиц форума и колонки rank ───────────── */
+
+let schemaReady = false;
+async function ensureSchema(db) {
+  if (schemaReady) return;
+  const { results } = await db.prepare("PRAGMA table_info(users)").all();
+  if (!(results || []).some((c) => c.name === "rank"))
+    await db.prepare("ALTER TABLE users ADD COLUMN rank TEXT NOT NULL DEFAULT 'player'").run();
+  await db.batch([
+    db.prepare("CREATE TABLE IF NOT EXISTS forum_topics (id INTEGER PRIMARY KEY AUTOINCREMENT, author_id INTEGER REFERENCES users(id) ON DELETE SET NULL, author_nick TEXT NOT NULL, author_rank TEXT NOT NULL DEFAULT 'player', title TEXT NOT NULL, tag TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', reason TEXT, views INTEGER NOT NULL DEFAULT 0, replies INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)"),
+    db.prepare("CREATE TABLE IF NOT EXISTS forum_messages (id INTEGER PRIMARY KEY AUTOINCREMENT, topic_id INTEGER NOT NULL REFERENCES forum_topics(id) ON DELETE CASCADE, author_id INTEGER, author_nick TEXT NOT NULL, author_rank TEXT NOT NULL DEFAULT 'player', body TEXT NOT NULL, created_at TEXT NOT NULL)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS forum_topics_tag_status ON forum_topics(tag, status)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS forum_topics_updated ON forum_topics(updated_at DESC)"),
+    db.prepare("CREATE INDEX IF NOT EXISTS forum_messages_topic ON forum_messages(topic_id, id)"),
+  ]);
+  schemaReady = true;
 }
 
 /* ───────────── роутер ───────────── */
@@ -706,6 +725,7 @@ export async function onRequest({ request, env }) {
   const parts = pathname.split("/").filter(Boolean); // ["api","forum","topics","3","status"]
 
   try {
+    if (parts[1] === "forum" || parts[1] === "auth" || parts[1] === "me" || parts[1] === "admin") await ensureSchema(env.DB);
     if (pathname === "/api/health") return r.json(200, { ok: true, time: now() });
     if (pathname === "/api/auth/register" && m === "POST") return await register(ctx);
     if (pathname === "/api/auth/login" && m === "POST") return await login(ctx);
@@ -728,6 +748,7 @@ export async function onRequest({ request, env }) {
       if (m === "POST" && parts.length === 3) return await forumCreate(ctx);
       if (m === "GET" && parts.length === 4 && forumIdOk) return await forumTopic(ctx, Number(parts[3]));
       if (m === "POST" && parts.length === 4 && forumIdOk) return await forumReply(ctx, Number(parts[3]));
+      if (m === "POST" && parts.length === 5 && parts[4] === "reply" && forumIdOk) return await forumReply(ctx, Number(parts[3]));
       if (m === "POST" && parts.length === 5 && parts[4] === "status" && forumIdOk) return await forumStatus(ctx, Number(parts[3]));
       if (m === "POST" && parts.length === 5 && parts[4] === "tag" && forumIdOk) return await forumTag(ctx, Number(parts[3]));
     }
