@@ -705,3 +705,170 @@
   .info > div { flex-direction: column; gap: 2px; }
   .info dd { text-align: left; }
 }
+
+/* =========================================================
+   ТЁМНАЯ СХЕМА: кабинет остаётся тёмным (style.css v5
+   «Paper Mag» сделан светлым для лендинга — здесь мы
+   возвращаем тёмные токены и перекрашиваем общие блоки).
+   ========================================================= */
+
+:root {
+  --bg: #05060a;
+  --bg-soft: #0a0c12;
+  --panel: rgba(255, 255, 255, 0.035);
+  --line: rgba(255, 255, 255, 0.08);
+  --line-strong: rgba(255, 255, 255, 0.16);
+  --text: #f2f4fa;
+  --muted: #99a1b7;
+  --ink: #0a0c11;
+  --shadow: 0 20px 50px -30px rgb(0 0 0 / 80%);
+  --shadow-big: 0 34px 90px -36px rgb(0 0 0 / 85%);
+}
+
+.bg {
+  background:
+    radial-gradient(ellipse 120% 70% at 78% -20%, #0d1120 0%, transparent 60%),
+    radial-gradient(ellipse 100% 60% at 8% 108%, #0a0e1c 0%, transparent 55%),
+    var(--bg);
+}
+
+.bg-grid {
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.045) 1px, transparent 1px);
+  background-size: 64px 64px;
+  -webkit-mask-image: radial-gradient(ellipse 90% 60% at 50% 4%, #000 0%, transparent 76%);
+  mask-image: radial-gradient(ellipse 90% 60% at 50% 4%, #000 0%, transparent 76%);
+  opacity: 0.4;
+}
+
+.bg-orb {
+  mix-blend-mode: screen;
+  filter: blur(95px);
+  opacity: 0.4;
+}
+
+.bg-noise { mix-blend-mode: overlay; }
+
+.cursor-light,
+body::after { mix-blend-mode: screen; }
+
+/* шапка/кнопки — тёмное стекло */
+
+.header {
+  background: color-mix(in srgb, var(--bg) 50%, transparent);
+  border-bottom: 1px solid transparent;
+}
+
+.header.is-scrolled {
+  background: color-mix(in srgb, var(--bg) 86%, transparent);
+  border-bottom-color: var(--line);
+  box-shadow: 0 18px 46px -30px rgb(0 0 0 / 75%);
+}
+
+.brand__icon { border-color: transparent; box-shadow: 0 6px 18px -6px color-mix(in srgb, var(--a) 85%, transparent); }
+.brand__text span { filter: drop-shadow(0 0 8px color-mix(in srgb, var(--a) 60%, transparent)); }
+.brand__ver { border-color: var(--line); background: rgba(255, 255, 255, 0.04); }
+
+.nav {
+  border: 1px solid var(--line);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
+}
+
+.nav a { color: var(--muted); }
+.nav a:not(.nav__account):hover { color: var(--text); background: rgba(255, 255, 255, 0.06); }
+
+.swatches { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.03); box-shadow: none; }
+.swatch span { border-color: rgba(255, 255, 255, 0.22); }
+.swatch.is-active::after { border-color: color-mix(in srgb, var(--a) 90%, white); box-shadow: 0 0 12px color-mix(in srgb, var(--a) 70%, transparent); }
+
+.lang { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); box-shadow: none; color: var(--muted); }
+.lang:hover { color: var(--text); border-color: var(--line-strong); }
+
+.burger { border: 1px solid var(--line); background: rgba(255, 255, 255, 0.04); box-shadow: none; }
+.burger span { background: var(--text); }
+
+.btn {
+  border: 1px solid transparent;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.045);
+  box-shadow: none;
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.btn::before {
+  background: linear-gradient(115deg, transparent 28%, rgba(255, 255, 255, 0.4) 50%, transparent 72%);
+}
+
+.btn--ghost:hover {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: color-mix(in srgb, var(--a) 55%, var(--line-strong));
+  box-shadow: 0 10px 30px -14px color-mix(in srgb, var(--a) 50%, transparent);
+  transform: translateY(-2px);
+}
+
+.btn--primary {
+  color: var(--ink);
+  border-color: transparent;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--a) 95%, white) 0%, var(--a) 42%, var(--b) 100%);
+  box-shadow: 0 12px 34px -12px color-mix(in srgb, var(--a) 55%, transparent);
+}
+
+.btn--primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 18px 44px -12px color-mix(in srgb, var(--a) 85%, transparent);
+}
+
+.acc-avatar { color: var(--ink); }
+
+.header__account.is-user { border-color: color-mix(in srgb, var(--a) 50%, var(--line-strong)); }
+
+/* мобильная навигация — тёмное меню */
+
+@media (max-width: 900px) {
+  .nav {
+    position: fixed;
+    top: var(--header-h);
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    margin: 0;
+    padding: 10px 24px 16px;
+    border-radius: 0;
+    border: 0;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--bg) 96%, transparent);
+    transform: translateY(-10px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s var(--ease), transform 0.3s var(--ease), visibility 0.3s;
+  }
+
+  .nav.is-open { opacity: 1; visibility: visible; transform: none; }
+
+  .nav a {
+    display: flex;
+    padding: 13px 2px;
+    border-radius: 0;
+    font-size: 1rem;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .nav a:not(.nav__account):hover { background: none; }
+  .burger { display: grid; }
+  .header__account { display: none; }
+  .nav a.nav__account {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: var(--text);
+    font-weight: 800;
+    border-bottom: 0;
+  }
+}
