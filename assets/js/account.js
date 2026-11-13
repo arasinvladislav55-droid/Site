@@ -59,6 +59,10 @@
       "err.not_found": "Пользователь не найден.",
       "prof.hintFree": "Premium открывает все темы, оформление Rounded UI и Discord RPC.",
       "prof.hintWarn": "Подписка скоро закончится — продлите, чтобы не потерять функции.",
+      "prof.hwidTitle": "HWID подписки",
+      "prof.hwidFree": "Premium выдаёт HWID при активации подписки.",
+      "prof.hwidHint": "HWID клиента привязывается к вашему аккаунту и передаётся в лаунчер при запуске.",
+      "prof.hwidCopy": "Копировать",
       "prof.activeUntil": "Активна до {date}",
       "prof.left": "Осталось {n}",
       "prof.day.one": "день",
@@ -164,6 +168,10 @@
       "err.not_found": "User not found.",
       "prof.hintFree": "Premium unlocks all themes, Rounded UI styling and Discord RPC.",
       "prof.hintWarn": "Your subscription ends soon — renew to keep your features.",
+      "prof.hwidTitle": "Subscription HWID",
+      "prof.hwidFree": "Premium issues an HWID when the subscription is activated.",
+      "prof.hwidHint": "The client HWID is bound to your account and passed to the launcher on launch.",
+      "prof.hwidCopy": "Copy",
       "prof.activeUntil": "Active until {date}",
       "prof.left": "{n} left",
       "prof.day.one": "day",
@@ -284,6 +292,10 @@
     subMeter: $("#subMeter"),
     subFill: $("#subFill"),
     subHint: $("#subHint"),
+    subHwidBox: $("#hwidBox"),
+    subHwid: $("#subHwid"),
+    subHwidHint: $("#subHwidHint"),
+    subHwidCopy: $("#subHwidCopy"),
     subCta: $("#subCta"),
     featList: $("#featList"),
     infoList: $("#infoList"),
@@ -459,6 +471,7 @@
       els.subMeter.hidden = true;
       els.subHint.textContent = t("prof.hintFree");
       els.subHint.classList.remove("is-warn");
+      els.subHwidBox.hidden = true;
       return;
     }
 
@@ -476,6 +489,15 @@
       ? t("prof.hintWarn")
       : t("prof.left", { n: left + " " + plural(left) });
     els.subHint.classList.toggle("is-warn", warn);
+
+    // HWID подписки: платный тариф — свой HWID, который лаунчер передаст игре при запуске.
+    if (user.hwid) {
+      els.subHwidBox.hidden = false;
+      els.subHwid.textContent = user.hwid;
+      els.subHwidHint.textContent = t("prof.hwidHint");
+    } else {
+      els.subHwidBox.hidden = true;
+    }
   }
 
   function renderFeatures(user) {
@@ -764,6 +786,15 @@
 
   els.tabs.forEach((tab) => tab.addEventListener("click", () => setMode(tab.dataset.tab)));
   els.form.addEventListener("submit", submit);
+  els.subHwidCopy.addEventListener("click", async () => {
+    const value = els.subHwid.textContent.trim();
+    if (!value) return;
+    try {
+      await navigator.clipboard.writeText(value);
+    } catch {
+      /* буфер может быть недоступен (нужен https) — не критично */
+    }
+  });
   els.logout.addEventListener("click", logout);
   els.pwForm.addEventListener("submit", changePassword);
   els.logoutAll.addEventListener("click", logoutEverywhere);

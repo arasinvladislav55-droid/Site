@@ -5,6 +5,7 @@ CREATE TABLE IF NOT EXISTS users (
   plan        TEXT NOT NULL DEFAULT 'free',
   plan_until  TEXT,
   device_id   TEXT,
+  hwid        TEXT,
   created_at  TEXT NOT NULL,
   last_login  TEXT
 );
@@ -15,6 +16,13 @@ CREATE TABLE IF NOT EXISTS sessions (
   created_at  TEXT NOT NULL,
   expires_at  TEXT NOT NULL
 );
+
+/*
+ * HWID (hardware id) визуального клиента: выдаётся пользователю при оплате
+ * подписки (или админ-выдаче) и хранится ровно на аккаунте. Роулинг визуальных
+ * клиентов: свой HWID на аккаунт/тариф. NULL — у бесплатного плана.
+ * Колонка users.hwid; миграция D1: ALTER TABLE users ADD COLUMN hwid TEXT;
+ */
 
 CREATE INDEX IF NOT EXISTS sessions_user ON sessions(user_id);
 

@@ -19,6 +19,9 @@
  *   PBKDF2_ITER      сложность хеша пароля (по умолчанию 30000, максимум 100000).
  *                    На бесплатном плане лимит 10 мс CPU на запрос; на платном
  *                    плане можно ставить 100000. Старые хеши обновятся при входе.
+ *   users.hwid        HWID визуального клиента, выдаваемый под платную подписку
+ *                    (роулинг: свой HWID на аккаунт/тариф). Миграция:
+ *                    ALTER TABLE users ADD COLUMN hwid TEXT;
  */
 
 const NICK_RE = /^[A-Za-z0-9_]{3,16}$/;
@@ -43,6 +46,9 @@ const DEFAULT_ITER = 30000;
 const MAX_ITER = 100000;
 const WINDOW_MS = 5 * 60 * 1000;
 const RATE_LIMIT = 12;
+
+/* Новый HWID (роулинг визуальных клиентов: свой HWID на аккаунт/тариф подписки). */
+const newHwid = () => crypto.randomUUID();
 
 /* ───────────── форум: теги и статусы ───────────── */
 
@@ -142,6 +148,7 @@ function userJson(row) {
     createdAt: row.created_at,
     lastLogin: row.last_login || null,
     deviceLinked: Boolean(row.device_id),
+    hwid: row.hwid || null,
   };
 }
 
@@ -181,7 +188,10 @@ async function extendPlan(db, nickname, plan) {
   if (!row) return null;
   const base = Math.max(Date.now(), row.plan_until ? new Date(row.plan_until).getTime() : 0);
   const until = new Date(base + days * 864e5).toISOString();
-  await db.prepare("UPDATE users SET plan = ?, plan_until = ? WHERE id = ?").bind(plan, until, row.id).run();
+  // Выдача/продление подписки: платному тарифу сразу выдаём свой HWID
+  // (роулинг визуальных клиентов: HWID на аккаунт/тариф).
+  const hwid = newHwid();
+  await db.prepare("UPDATE users SET plan = ?, plan_until = ?, hwid = ? WHERE id = ?").bind(plan, until, hwid, row.id).run();
   return userJson(await db.prepare("SELECT * FROM users WHERE id = ?").bind(row.id).first());
 }
 
@@ -234,6 +244,7 @@ async function adminSearch({ request, env, r }) {
       rank: RANKS.includes(row.rank) ? row.rank : "player",
       plan: planOf(row),
       planUntil: row.plan_until,
+      hwid: row.hwid || null,
     })),
   });
 }
@@ -275,7 +286,11 @@ async function adminSetPlan({ request, env, r }) {
   if (plan === "revoke") {
     const row = await db.prepare("SELECT * FROM users WHERE nickname = ?").bind(nickname).first();
     if (!row) return r.fail(404, "not_found", "Пользователь не найден.");
-    await db.prepare("UPDATE users SET plan = 'free', plan_until = NULL WHERE id = ?").bind(row.id).run();
+    // Подписка отозвана — HWID возвращается к выдаче (следующая оплата выдаст новый).
+    await db
+      .prepare("UPDATE users SET plan = 'free', plan_until = NULL, hwid = NULL WHERE id = ?")
+      .bind(row.id)
+      .run();
     return r.json(200, { user: userJson(await db.prepare("SELECT * FROM users WHERE id = ?").bind(row.id).first()) });
   }
 

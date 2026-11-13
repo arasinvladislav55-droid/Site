@@ -467,6 +467,43 @@
 
 .prof__hint.is-warn { color: #fbbf24; }
 
+/* HWID подписки */
+
+.hwidbox {
+  margin-top: 14px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  display: grid;
+  gap: 8px;
+}
+
+.hwidbox[hidden] { display: none; }
+
+.hwidbox__label {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.hwidbox__row { display: flex; align-items: center; gap: 8px; }
+
+.hwidbox__value {
+  font-family: var(--mono);
+  font-size: 0.92rem;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 6px 10px;
+  word-break: break-all;
+}
+
+.hwidbox__hint { margin: 0; font-size: 0.78rem; color: var(--muted); }
+
 .meter {
   margin-top: 16px;
   height: 8px;

@@ -326,6 +326,15 @@
     idTxt.textContent = "#" + user.id;
     meta.append(planBadge, idTxt);
 
+    // HWID подписки (роулинг визуальных клиентов): выдаётся при платной подписке.
+    if (user.hwid) {
+      const hwidEl = document.createElement("span");
+      hwidEl.className = "adm-user__hwid";
+      hwidEl.textContent = user.hwid;
+      hwidEl.title = user.hwid;
+      meta.append(hwidEl);
+    }
+
     id.append(nickrow, meta);
 
     /* --- блоки действий --- */
