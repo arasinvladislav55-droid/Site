@@ -706,14 +706,17 @@ async function forumCreate({ request, env, ip, r }) {
   return r.json(201, { topic: forumTopicView(topic) });
 }
 
-/* ───────────── автосоздание таблиц форума и колонки rank ───────────── */
+/* ───────────── автосоздание таблиц форума и колонок rank/hwид ───────────── */
 
 let schemaReady = false;
 async function ensureSchema(db) {
   if (schemaReady) return;
   const { results } = await db.prepare("PRAGMA table_info(users)").all();
-  if (!(results || []).some((c) => c.name === "rank"))
+  const cols = (results || []).map((c) => c.name);
+  if (!cols.includes("rank"))
     await db.prepare("ALTER TABLE users ADD COLUMN rank TEXT NOT NULL DEFAULT 'player'").run();
+  // HWID подписки (роулинг визуальных клиентов). Существующая БД без колонки — добавляем.
+  if (!cols.includes("hwid")) await db.prepare("ALTER TABLE users ADD COLUMN hwid TEXT").run();
   await db.batch([
     db.prepare("CREATE TABLE IF NOT EXISTS forum_topics (id INTEGER PRIMARY KEY AUTOINCREMENT, author_id INTEGER REFERENCES users(id) ON DELETE SET NULL, author_nick TEXT NOT NULL, author_rank TEXT NOT NULL DEFAULT 'player', title TEXT NOT NULL, tag TEXT NOT NULL, body TEXT NOT NULL, status TEXT NOT NULL DEFAULT 'pending', reason TEXT, views INTEGER NOT NULL DEFAULT 0, replies INTEGER NOT NULL DEFAULT 0, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)"),
     db.prepare("CREATE TABLE IF NOT EXISTS forum_messages (id INTEGER PRIMARY KEY AUTOINCREMENT, topic_id INTEGER NOT NULL REFERENCES forum_topics(id) ON DELETE CASCADE, author_id INTEGER, author_nick TEXT NOT NULL, author_rank TEXT NOT NULL DEFAULT 'player', body TEXT NOT NULL, created_at TEXT NOT NULL)"),
@@ -740,7 +743,8 @@ export async function onRequest({ request, env }) {
   const parts = pathname.split("/").filter(Boolean); // ["api","forum","topics","3","status"]
 
   try {
-    if (parts[1] === "forum" || parts[1] === "auth" || parts[1] === "me" || parts[1] === "admin") await ensureSchema(env.DB);
+    const schemaPaths = new Set(["forum", "auth", "me", "admin", "dev", "payments"]);
+    if (schemaPaths.has(parts[1])) await ensureSchema(env.DB);
     if (pathname === "/api/health") return r.json(200, { ok: true, time: now() });
     if (pathname === "/api/auth/register" && m === "POST") return await register(ctx);
     if (pathname === "/api/auth/login" && m === "POST") return await login(ctx);
