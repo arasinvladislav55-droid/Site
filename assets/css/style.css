@@ -226,12 +226,16 @@ svg { display: block; }
   translate: -50% -50%;
   border-radius: 50%;
   background:
-    radial-gradient(circle at 50% 30%, #59a03e 0%, #3f7f2f 30%, #8a5a33 62%, #6b4423 100%);
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='c'%3E%3CfeGaussianBlur stdDeviation='30'%3E%3Ccircle cx='150' cy='120' r='95' fill='%23ffffff' fill-opacity='0.85'/%3E%3Ccircle cx='255' cy='255' r='115' fill='%23ffffff' fill-opacity='0.75'/%3E%3Ccircle cx='115' cy='255' r='70' fill='%23ffffff' fill-opacity='0.7'/%3E%3Ccircle cx='205' cy='60' r='55' fill='%23ffffff' fill-opacity='0.6'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23c)'/%3E%3C/svg%3E"),
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='320' height='320'%3E%3Cfilter id='b'%3E%3CfeGaussianBlur stdDeviation='42'%3E%3Ccircle cx='100' cy='140' r='150' fill='%235d8a3e'/%3E%3Ccircle cx='245' cy='205' r='165' fill='%238a6a42'/%3E%3Ccircle cx='215' cy='80' r='95' fill='%23546838'/%3E%3C/filter%3E%3Crect width='320' height='320' filter='url(%23b)'/%3E%3C/svg%3E"),
+    radial-gradient(circle at 50% 38%, #3d6fc4 0%, #2a4f96 38%, #1b3a72 70%, #122a52 100%);
+  background-size: 100% 100%, 100% 100%, 100% 100%;
+  background-repeat: no-repeat;
   box-shadow:
-    inset -18px -14px 46px rgba(18, 28, 14, 0.55),
-    inset 12px 10px 34px rgba(255, 255, 255, 0.13),
-    0 0 120px color-mix(in srgb, var(--a) 20%, transparent);
-  opacity: 0.55;
+    inset -18px -14px 46px rgba(10, 20, 40, 0.55),
+    inset 12px 10px 34px rgba(255, 255, 255, 0.14),
+    0 0 140px rgba(90, 169, 255, 0.35);
+  opacity: 0.85;
   animation: planet-spin 140s linear infinite;
   will-change: transform;
   pointer-events: none;
