@@ -217,12 +217,12 @@ svg { display: block; }
 .bg::after {
   content: "";
   position: absolute;
-  top: 56%;
+  top: 52%;
   left: 50%;
-  width: 46vmin;
-  height: 46vmin;
-  max-width: 560px;
-  max-height: 560px;
+  width: 56vmin;
+  height: 56vmin;
+  max-width: 680px;
+  max-height: 680px;
   translate: -50% -50%;
   border-radius: 50%;
   background:
