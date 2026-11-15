@@ -70,6 +70,7 @@
 .forum-topic {
   position: relative;
   display: grid;
+  grid-template-columns: 1fr;
   gap: 12px;
   padding: 20px 22px;
   border-radius: 14px;
@@ -237,6 +238,18 @@
 }
 
 .forum-topic__stats b { color: var(--text); font-weight: 800; font-variant-numeric: tabular-nums; }
+
+.forum-topic__time {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--muted);
+  opacity: 0.85;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.forum-topic__time:hover { color: var(--text); }
+.forum-topic__author:hover .forum-topic__author-nick { color: var(--a); }
 
 .forum-topic__actions {
   grid-column: 1 / -1;

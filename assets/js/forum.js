@@ -431,6 +431,13 @@
     return wrap;
   }
 
+  function fmtForumDate(iso) {
+    const d = new Date(iso);
+    if (!iso || isNaN(d.getTime())) return "";
+    const locale = state.lang === "ru" ? "ru-RU" : "en-GB";
+    return d.toLocaleDateString(locale, { day: "numeric", month: "short", year: "numeric" });
+  }
+
   function topicCard(topic) {
     const card = document.createElement("article");
     card.className = "forum-topic";
@@ -489,7 +496,10 @@
     viewsStat.append(viewsLabel, viewsVal);
 
     stats.append(repliesStat, viewsStat);
-    footer.append(author, stats);
+    const timeEl = document.createElement("span");
+    timeEl.className = "forum-topic__time";
+    timeEl.textContent = fmtForumDate(topic.updatedAt || topic.createdAt);
+    footer.append(author, timeEl, stats);
 
     card.append(badges, titleEl, bodyEl, footer);
 

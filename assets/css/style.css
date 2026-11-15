@@ -212,6 +212,40 @@ svg { display: block; }
     transparent 32%);
 }
 
+/* ---------- ФОН: вращающаяся круглая планета (Minecraft) ---------- */
+
+.bg::after {
+  content: "";
+  position: absolute;
+  top: 56%;
+  left: 50%;
+  width: 46vmin;
+  height: 46vmin;
+  max-width: 560px;
+  max-height: 560px;
+  translate: -50% -50%;
+  border-radius: 50%;
+  background:
+    radial-gradient(circle at 50% 30%, #59a03e 0%, #3f7f2f 30%, #8a5a33 62%, #6b4423 100%);
+  box-shadow:
+    inset -18px -14px 46px rgba(18, 28, 14, 0.55),
+    inset 12px 10px 34px rgba(255, 255, 255, 0.13),
+    0 0 120px color-mix(in srgb, var(--a) 20%, transparent);
+  opacity: 0.55;
+  animation: planet-spin 140s linear infinite;
+  will-change: transform;
+  pointer-events: none;
+}
+
+@keyframes planet-spin {
+  from { rotate: 0deg; }
+  to { rotate: 360deg; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bg::after { animation: none; }
+}
+
 .bg-noise {
   position: absolute;
   inset: 0;
